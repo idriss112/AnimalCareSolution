@@ -88,11 +88,12 @@ namespace AnimalCare.Data
             // ---------------------------------------------------
             // APPLICATIONUSER ↔ VETERINARIAN (1 ↔ 0 or 1)
             // ---------------------------------------------------
-            modelBuilder.Entity<ApplicationUser>()
-                .HasOne(u => u.Veterinarian)
-                .WithOne(v => v.User)
-                .HasForeignKey<ApplicationUser>(u => u.LinkedVeterinarianId)
-                .OnDelete(DeleteBehavior.SetNull);
+                    modelBuilder.Entity<ApplicationUser>()
+                    .HasOne(u => u.Veterinarian)
+                    .WithOne(v => v.User)
+                    .HasForeignKey<ApplicationUser>(u => u.VeterinarianId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
 
             // -----------------------------
             // PROPERTY CONFIGURATIONS
@@ -153,9 +154,24 @@ namespace AnimalCare.Data
             var receptionistRoleId = "role-receptionist-id";
 
             modelBuilder.Entity<IdentityRole>().HasData(
-                new IdentityRole { Id = adminRoleId, Name = "Admin", NormalizedName = "ADMIN" },
-                new IdentityRole { Id = vetRoleId, Name = "Veterinarian", NormalizedName = "VETERINARIAN" },
-                new IdentityRole { Id = receptionistRoleId, Name = "Receptionist", NormalizedName = "RECEPTIONIST" }
+                new IdentityRole
+                {
+                    Id = adminRoleId,
+                    Name = "Admin",
+                    NormalizedName = "ADMIN"
+                },
+                new IdentityRole
+                {
+                    Id = vetRoleId,
+                    Name = "Veterinarian",
+                    NormalizedName = "VETERINARIAN"
+                },
+                new IdentityRole
+                {
+                    Id = receptionistRoleId,
+                    Name = "Receptionist",
+                    NormalizedName = "RECEPTIONIST"
+                }
             );
         }
 
@@ -184,13 +200,15 @@ namespace AnimalCare.Data
             var adminUser = new ApplicationUser
             {
                 Id = adminUserId,
-                UserName = "admin@animalcare.local",
-                NormalizedUserName = "ADMIN@ANIMALCARE.LOCAL",
-                Email = "admin@animalcare.local",
-                NormalizedEmail = "ADMIN@ANIMALCARE.LOCAL",
+                UserName = "admin@animalcare.com",
+                NormalizedUserName = "ADMIN@ANIMALCARE.COM",
+                Email = "admin@animalcare.com",
+                NormalizedEmail = "ADMIN@ANIMALCARE.COM",
                 EmailConfirmed = true,
                 FirstName = "System",
                 LastName = "Administrator",
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
                 SecurityStamp = Guid.NewGuid().ToString("D")
             };
 
@@ -198,9 +216,12 @@ namespace AnimalCare.Data
 
             modelBuilder.Entity<ApplicationUser>().HasData(adminUser);
 
-            // assign Admin role
             modelBuilder.Entity<IdentityUserRole<string>>().HasData(
-                new IdentityUserRole<string> { UserId = adminUserId, RoleId = adminRoleId }
+                new IdentityUserRole<string>
+                {
+                    UserId = adminUserId,
+                    RoleId = adminRoleId
+                }
             );
         }
     }

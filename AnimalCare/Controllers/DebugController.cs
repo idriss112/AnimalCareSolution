@@ -17,6 +17,7 @@ namespace AnimalCare.Controllers
             var animalsCount = _context.Animals.Count();
             var ownersCount = _context.Owners.Count();
             var vetsCount = _context.Veterinarians.Count();
+            
 
             return Content($"DB OK - Animals: {animalsCount}, Owners: {ownersCount}, Vets: {vetsCount}");
         }

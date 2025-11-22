@@ -4,6 +4,7 @@ using AnimalCare.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AnimalCare.Data.Migrations
 {
     [DbContext(typeof(AnimalCareDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251121230440_UpdateApplicationUserModel")]
+    partial class UpdateApplicationUserModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -166,21 +169,21 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = "user-admin-id",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "0a81961f-1e70-46a5-8d0e-168ad7ca44b1",
-                            CreatedAt = new DateTime(2025, 11, 21, 23, 9, 23, 139, DateTimeKind.Utc).AddTicks(8453),
-                            Email = "admin@animalcare.com",
+                            ConcurrencyStamp = "e6d43122-1d62-4a82-92f6-c24e7dcd45c3",
+                            CreatedAt = new DateTime(2025, 11, 21, 23, 4, 39, 511, DateTimeKind.Utc).AddTicks(7589),
+                            Email = "admin@animalcare.local",
                             EmailConfirmed = true,
                             FirstName = "System",
                             IsActive = true,
                             LastName = "Administrator",
                             LockoutEnabled = false,
-                            NormalizedEmail = "ADMIN@ANIMALCARE.COM",
-                            NormalizedUserName = "ADMIN@ANIMALCARE.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEK+xjTRfw7Ide9hI4dYBhiWa2AgdZ+MCIBSoW1VAM8i2lGWCRK9enBwKDLs8w5ZKqQ==",
+                            NormalizedEmail = "ADMIN@ANIMALCARE.LOCAL",
+                            NormalizedUserName = "ADMIN@ANIMALCARE.LOCAL",
+                            PasswordHash = "AQAAAAIAAYagAAAAEBA84BYL6+aG20IlTKqYOgnYRGUVfFynLzp6jpy6txBeJGTUJJVVSLEc5faLmpufKQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "f37f661d-813e-4bf5-9fe2-280c98e9dc48",
+                            SecurityStamp = "f2f36bb6-d759-44ab-a3a8-599dfff401fe",
                             TwoFactorEnabled = false,
-                            UserName = "admin@animalcare.com"
+                            UserName = "admin@animalcare.local"
                         });
                 });
 

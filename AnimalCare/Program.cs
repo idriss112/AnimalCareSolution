@@ -5,36 +5,45 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1) Connection string
+// Connection string
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-// 2) Register DbContext with SQL Server
 builder.Services.AddDbContext<AnimalCareDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// (Optional but useful in dev for better EF error pages)
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-// 3) Register Identity with ApplicationUser + Roles
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = false; // dev only
-                                                    // You can also configure password rules here
+    // Password settings
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 8;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
+
+    // Lockout settings
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+
+    // User settings
+    options.User.RequireUniqueEmail = true;
+
+    // Sign-in settings
+    options.SignIn.RequireConfirmedAccount = false; // enable email confirmation later in production
 })
-    .AddRoles<IdentityRole>() // we use roles: Admin, Veterinarian, Receptionist
+    .AddRoles<IdentityRole>() // critical for roles
     .AddEntityFrameworkStores<AnimalCareDbContext>();
 
-// 4) Add MVC
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// 5) Configure middleware pipeline
-
+// Middleware pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.UseMigrationsEndPoint(); // shows migration errors nicely
+    app.UseMigrationsEndPoint();
 }
 else
 {
@@ -47,15 +56,14 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication(); // Identity
+app.UseAuthentication(); // MUST be before UseAuthorization
 app.UseAuthorization();
 
-// Default route
+// Routes
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Identity endpoints (login, register, etc.)
 app.MapRazorPages();
 
 app.Run();
