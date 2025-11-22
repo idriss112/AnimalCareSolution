@@ -1,0 +1,106 @@
+﻿@model IEnumerable<AnimalCare.Models.Owner>
+
+@{
+    ViewData["Title"] = "Owners";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">
+        <i class="bi bi-people-fill me-2 text-primary"></i> Animal Owners
+    </h2>
+
+    @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
+    {
+        <a asp-action="Create" class="btn btn-primary shadow-sm">
+            <i class="bi bi-person-plus-fill me-1"></i> Add Owner
+        </a>
+    }
+</div>
+
+<!-- SEARCH BAR -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-2">
+            <div class="col-md-6">
+                <input type="text" name="searchString" class="form-control"
+                       placeholder="Search by name, phone, email..." />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- OWNERS TABLE -->
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover table-striped mb-0">
+            <thead class="table-primary">
+                <tr>
+                    <th><i class="bi bi-person-fill"></i> Name</th>
+                    <th><i class="bi bi-envelope-fill"></i> Email</th>
+                    <th><i class="bi bi-telephone-fill"></i> Phone</th>
+                    <th><i class="bi bi-geo-alt-fill"></i> City</th>
+                    <th><i class="bi bi-paw-fill"></i> Animals</th>
+                    <th style="width: 180px;"><i class="bi bi-gear-fill"></i> Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var owner in Model)
+                {
+                    <tr>
+                        <td>@owner.FirstName @owner.LastName</td>
+                        <td>@owner.Email</td>
+                        <td>@owner.PhoneNumber</td>
+                        
+                        <td>
+                            @if (owner.Animals?.Any() == true)
+                            {
+                                <span class="badge bg-info">
+                                    <i class="bi bi-paw"></i> @owner.Animals.Count
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">0</span>
+                            }
+                        </td>
+
+                        <td class="d-flex gap-2">
+                            <a asp-action="Details" asp-route-id="@owner.Id" class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-info-circle"></i>
+                            </a>
+
+                            @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
+                            {
+                                <a asp-action="Edit" asp-route-id="@owner.Id" class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                            }
+
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a asp-action="Delete" asp-route-id="@owner.Id" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info shadow-sm mt-3">
+        <i class="bi bi-exclamation-circle me-2"></i>
+        No owners found.
+        <a asp-action="Create" class="fw-bold">Add one now →</a>
+    </div>
+}

@@ -1,0 +1,79 @@
+﻿@model AnimalCare.Models.Owner
+
+@{
+    ViewData["Title"] = "Owner Details";
+}
+
+<h2 class="fw-bold mb-4">
+    <i class="bi bi-person-badge text-primary me-2"></i> Owner Details
+</h2>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white fw-bold">
+        <i class="bi bi-person-fill me-2"></i> Owner Information
+    </div>
+
+    <div class="card-body">
+        <p><strong>Name:</strong> @Model.FirstName @Model.LastName</p>
+        <p><strong>Email:</strong> @Model.Email</p>
+        <p><strong>Phone:</strong> @Model.PhoneNumber</p>
+        <p><strong>Address:</strong> @Model.Address</p>
+    </div>
+</div>
+
+<!-- ANIMALS SECTION -->
+<div class="card shadow-sm">
+    <div class="card-header bg-info text-white fw-bold">
+        <i class="bi bi-paw-fill me-2"></i> Owned Animals
+    </div>
+
+    <div class="card-body">
+        @if (Model.Animals != null && Model.Animals.Any())
+        {
+            <table class="table table-striped">
+                <thead class="table-info">
+                    <tr>
+                        <th>Name</th>
+                        <th>Species</th>
+                        <th>Breed</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var animal in Model.Animals)
+                    {
+                        <tr>
+                            <td>@animal.Name</td>
+                            <td>@animal.Species</td>
+                            <td>@animal.Breed</td>
+                            <td>
+                                <a asp-controller="Animals" asp-action="Details"
+                                   asp-route-id="@animal.Id" class="btn btn-sm btn-outline-info">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-muted">No animals registered.</p>
+        }
+    </div>
+</div>
+
+<!-- ACTION BUTTONS -->
+<div class="mt-4 d-flex gap-2">
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left-circle"></i> Back
+    </a>
+
+    @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+            <i class="bi bi-pencil-square"></i> Edit
+        </a>
+    }
+</div>
