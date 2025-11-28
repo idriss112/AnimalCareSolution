@@ -23,11 +23,28 @@ namespace AnimalCare.Controllers
         // GET: Owners
         // All roles can view owners list
         [Authorize(Roles = "Admin,Receptionist,Veterinarian")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
             // Include Animals for quick count in the view
-            var owners = await _context.Owners
+            var ownersQuery = _context.Owners
                 .Include(o => o.Animals)
+                .AsQueryable();
+
+            // Filter if search string is provided
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                searchString = searchString.Trim().ToLower(); // Trim and convert to lowercase
+
+                ownersQuery = ownersQuery.Where(o =>
+                    o.FirstName.ToLower().Contains(searchString) ||
+                    o.LastName.ToLower().Contains(searchString) ||
+                    (o.FirstName + " " + o.LastName).ToLower().Contains(searchString) ||  // Full name search
+                    (o.Email != null && o.Email.ToLower().Contains(searchString)) ||
+                    (o.PhoneNumber != null && o.PhoneNumber.Contains(searchString))
+                );
+            }
+
+            var owners = await ownersQuery
                 .OrderBy(o => o.LastName)
                 .ThenBy(o => o.FirstName)
                 .ToListAsync();

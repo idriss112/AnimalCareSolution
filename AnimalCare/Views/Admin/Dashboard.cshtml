@@ -1,0 +1,132 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Admin Dashboard</h1>
+        <p class="text-muted mb-0">Overview of your Animal Care Clinic activity.</p>
+    </div>
+    <div>
+        <a asp-controller="Admin" asp-action="MonthlyReport" class="btn btn-outline-primary">
+            <i class="bi bi-graph-up-arrow me-1"></i> Monthly Report
+        </a>
+    </div>
+</div>
+
+<!-- STAT CARDS -->
+<div class="row g-3 mb-4">
+    <!-- Owners -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="card-subtitle text-muted text-uppercase small mb-0">Owners</h6>
+                    <span class="badge bg-primary-subtle text-primary">
+                        <i class="bi bi-people-fill"></i>
+                    </span>
+                </div>
+                <h2 class="display-6 fw-bold mb-1">@ViewBag.TotalOwners</h2>
+                <a asp-controller="Owners" asp-action="Index" class="stretched-link text-decoration-none small">
+                    View all owners <i class="bi bi-arrow-right-short"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Animals -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="card-subtitle text-muted text-uppercase small mb-0">Animals</h6>
+                    <span class="badge bg-success-subtle text-success">
+                        <i class="bi bi-heart-pulse-fill"></i>
+                    </span>
+                </div>
+                <h2 class="display-6 fw-bold mb-1">@ViewBag.TotalAnimals</h2>
+                <a asp-controller="Animals" asp-action="Index" class="stretched-link text-decoration-none small">
+                    View all animals <i class="bi bi-arrow-right-short"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Veterinarians -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="card-subtitle text-muted text-uppercase small mb-0">Veterinarians</h6>
+                    <span class="badge bg-info-subtle text-info">
+                        <i class="bi bi-stethoscope"></i>
+                    </span>
+                </div>
+                <h2 class="display-6 fw-bold mb-1">@ViewBag.TotalVets</h2>
+                <a asp-controller="Veterinarians" asp-action="Index" class="stretched-link text-decoration-none small">
+                    Manage vets <i class="bi bi-arrow-right-short"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="card-subtitle text-muted text-uppercase small mb-0">Appointments</h6>
+                    <span class="badge bg-warning-subtle text-warning">
+                        <i class="bi bi-calendar2-week-fill"></i>
+                    </span>
+                </div>
+                <h2 class="display-6 fw-bold mb-1">@ViewBag.TotalAppointments</h2>
+                <a asp-controller="Appointments" asp-action="Index" class="stretched-link text-decoration-none small">
+                    View schedule <i class="bi bi-arrow-right-short"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-light d-flex align-items-center">
+        <i class="bi bi-lightning-charge-fill text-warning me-2"></i>
+        <h5 class="mb-0">Quick Actions</h5>
+    </div>
+    <div class="card-body">
+        <div class="d-flex flex-wrap gap-2">
+            <a asp-controller="Admin" asp-action="MonthlyReport" class="btn btn-outline-primary">
+                <i class="bi bi-graph-up-arrow me-1"></i> Generate Monthly Report
+            </a>
+            <a asp-controller="Veterinarians" asp-action="Create" class="btn btn-outline-success">
+                <i class="bi bi-person-plus-fill me-1"></i> Add Veterinarian
+            </a>
+            <a asp-controller="VetSchedules" asp-action="Create" class="btn btn-outline-info">
+                <i class="bi bi-clock-history me-1"></i> Create Vet Schedule
+            </a>
+            <a asp-controller="Appointments" asp-action="Create" class="btn btn-outline-secondary">
+                <i class="bi bi-calendar-plus me-1"></i> Book Appointment
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- INFO PANEL -->
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-light d-flex align-items-center">
+        <i class="bi bi-info-circle-fill text-primary me-2"></i>
+        <h5 class="mb-0">Admin Notes</h5>
+    </div>
+    <div class="card-body">
+        <p class="mb-1">
+            Use the <strong>Monthly Report</strong> to track clinic performance: completed visits,
+            cancellations, and no-shows.
+        </p>
+        <p class="mb-0 text-muted small">
+            Tip: Combine the monthly report with your scheduling rules (no double-booking, vet availability)
+            to show your teacher you really controlled the business logic from A to Z. 💪
+        </p>
+    </div>
+</div>

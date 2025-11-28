@@ -1,0 +1,251 @@
+﻿@using AnimalCare.Models
+@model IEnumerable<Appointment>
+
+@{
+    ViewData["Title"] = "My Appointments";
+    var today = DateTime.Today;
+    var todayAppointments = Model.Where(a => a.AppointmentDateTime.Date == today)
+                                 .OrderBy(a => a.AppointmentDateTime)
+                                 .ToList();
+    var upcomingAppointments = Model.Where(a => a.AppointmentDateTime.Date > today)
+                                    .OrderBy(a => a.AppointmentDateTime)
+                                    .ToList();
+    var pastAppointments = Model.Where(a => a.AppointmentDateTime.Date < today)
+                                .OrderByDescending(a => a.AppointmentDateTime)
+                                .Take(20)
+                                .ToList();
+}
+
+<h2 class="mb-1">
+    <i class="bi bi-calendar-heart"></i> My Appointments
+</h2>
+<p class="text-muted">Appointments assigned to you as a veterinarian.</p>
+<hr />
+
+<!-- TODAY -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <i class="bi bi-calendar-day"></i> Today – @today.ToString("MMMM dd, yyyy")
+    </div>
+    <div class="card-body">
+        @if (todayAppointments.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Time</th>
+                            <th>Animal</th>
+                            <th>Owner</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in todayAppointments)
+                        {
+                            var animal = a.Animal;
+                            var owner = animal?.Owner;
+
+                            <tr>
+                                <td>@a.AppointmentDateTime.ToString("HH:mm")</td>
+                                <td>
+                                    @if (animal != null)
+                                    {
+                                        <a asp-controller="Animals" asp-action="Details" asp-route-id="@animal.Id">
+                                            @animal.Name
+                                        </a>
+                                    }
+                                </td>
+                                <td>
+                                    @if (owner != null)
+                                    {
+                                        @owner.FirstName @owner.LastName
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(a.Reason))
+                                    {
+                                        @a.Reason
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No reason</span>
+                                    }
+                                </td>
+                                <td>
+                                    @switch (a.Status)
+                                    {
+                                        case AppointmentStatus.Scheduled:
+                                            <span class="badge bg-primary">Scheduled</span>
+                                            break;
+                                        case AppointmentStatus.Completed:
+                                            <span class="badge bg-success">Completed</span>
+                                            break;
+                                        case AppointmentStatus.Cancelled:
+                                            <span class="badge bg-danger">Cancelled</span>
+                                            break;
+                                        case AppointmentStatus.NoShow:
+                                            <span class="badge bg-warning text-dark">No Show</span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <a asp-action="Details" asp-route-id="@a.Id" class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    @* If you add a "Mark as Completed" action later, button can go here *@
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle"></i> You have no appointments today.
+            </p>
+        }
+    </div>
+</div>
+
+<!-- UPCOMING -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white">
+        <i class="bi bi-calendar-week"></i> Upcoming Appointments
+    </div>
+    <div class="card-body">
+        @if (upcomingAppointments.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Animal</th>
+                            <th>Owner</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in upcomingAppointments)
+                        {
+                            var animal = a.Animal;
+                            var owner = animal?.Owner;
+
+                            <tr>
+                                <td>@a.AppointmentDateTime.ToString("MMM dd, yyyy")</td>
+                                <td>@a.AppointmentDateTime.ToString("HH:mm")</td>
+                                <td>@animal?.Name</td>
+                                <td>@(owner != null ? owner.FirstName + " " + owner.LastName : "")</td>
+                                <td>
+                                    @switch (a.Status)
+                                    {
+                                        case AppointmentStatus.Scheduled:
+                                            <span class="badge bg-primary">Scheduled</span>
+                                            break;
+                                        case AppointmentStatus.Completed:
+                                            <span class="badge bg-success">Completed</span>
+                                            break;
+                                        case AppointmentStatus.Cancelled:
+                                            <span class="badge bg-danger">Cancelled</span>
+                                            break;
+                                        case AppointmentStatus.NoShow:
+                                            <span class="badge bg-warning text-dark">No Show</span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <a asp-action="Details" asp-route-id="@a.Id" class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle"></i> No upcoming appointments.
+            </p>
+        }
+    </div>
+</div>
+
+<!-- PAST (LAST 20) -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <i class="bi bi-clock-history"></i> Recent Past Appointments
+    </div>
+    <div class="card-body">
+        @if (pastAppointments.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Animal</th>
+                            <th>Owner</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in pastAppointments)
+                        {
+                            var animal = a.Animal;
+                            var owner = animal?.Owner;
+
+                            <tr>
+                                <td>@a.AppointmentDateTime.ToString("MMM dd, yyyy HH:mm")</td>
+                                <td>@animal?.Name</td>
+                                <td>@(owner != null ? owner.FirstName + " " + owner.LastName : "")</td>
+                                <td>
+                                    @switch (a.Status)
+                                    {
+                                        case AppointmentStatus.Scheduled:
+                                            <span class="badge bg-primary">Scheduled</span>
+                                            break;
+                                        case AppointmentStatus.Completed:
+                                            <span class="badge bg-success">Completed</span>
+                                            break;
+                                        case AppointmentStatus.Cancelled:
+                                            <span class="badge bg-danger">Cancelled</span>
+                                            break;
+                                        case AppointmentStatus.NoShow:
+                                            <span class="badge bg-warning text-dark">No Show</span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <a asp-action="Details" asp-route-id="@a.Id" class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle"></i> No past appointments in the last period.
+            </p>
+        }
+    </div>
+</div>
+
+<a asp-action="Index" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Back to all appointments
+</a>

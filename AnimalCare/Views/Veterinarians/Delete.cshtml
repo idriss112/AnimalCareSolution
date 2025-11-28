@@ -1,0 +1,96 @@
+﻿@model AnimalCare.Models.Veterinarian
+
+@{
+    ViewData["Title"] = "Delete Veterinarian";
+}
+
+<h2 class="mb-1 text-danger">
+    <i class="bi bi-trash3-fill"></i> Delete Veterinarian
+</h2>
+<p class="text-muted">This action cannot be undone. Review details before confirming.</p>
+<hr />
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-danger shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Confirm Deletion
+                </h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Name</dt>
+                    <dd class="col-sm-8">@Model.FirstName @Model.LastName</dd>
+
+                    <dt class="col-sm-4">Email</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrWhiteSpace(Model.Email))
+                        {
+                            @Model.Email
+                        }
+                        else
+                        {
+                            <span class="text-muted">N/A</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Phone</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrWhiteSpace(Model.PhoneNumber))
+                        {
+                            @Model.PhoneNumber
+                        }
+                        else
+                        {
+                            <span class="text-muted">N/A</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Status</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> Active
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">
+                                <i class="bi bi-pause-circle"></i> Inactive
+                            </span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Appointments</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-info">
+                            @(Model.Appointments?.Count ?? 0)
+                        </span>
+                        <small class="text-muted d-block">
+                            Deletion may be blocked in the controller if there are future appointments.
+                        </small>
+                    </dd>
+                </dl>
+
+                <div class="alert alert-danger mt-3">
+                    <strong>Warning:</strong> Deleting this veterinarian may affect existing schedules and appointments.
+                    In many cases, using <strong>inactive status</strong> is safer than deleting.
+                </div>
+
+                <form asp-action="Delete" method="post" class="mt-3">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash3-fill"></i> Confirm Delete
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

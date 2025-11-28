@@ -1,0 +1,202 @@
+﻿@using AnimalCare.Models
+@model Appointment
+
+@{
+    ViewData["Title"] = "Appointment Details";
+    var animal = Model.Animal;
+    var owner = animal?.Owner;
+    var vet = Model.Veterinarian;
+}
+
+<h2 class="mb-1">
+    <i class="bi bi-file-earmark-text"></i> Appointment Details
+</h2>
+<p class="text-muted">Full information about this visit.</p>
+<hr />
+
+<div class="row g-3">
+    <!-- APPOINTMENT CARD -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-calendar-event"></i> Appointment
+            </div>
+            <div class="card-body">
+                <p>
+                    <strong>Date & Time:</strong><br />
+                    @Model.AppointmentDateTime.ToString("dddd, MMM dd yyyy HH:mm")
+                </p>
+                <p>
+                    <strong>Duration:</strong><br />
+                    @Model.DurationMinutes min
+                </p>
+                <p>
+                    <strong>Status:</strong><br />
+                    @switch (Model.Status)
+                    {
+                        case AppointmentStatus.Scheduled:
+                            <span class="badge bg-primary">
+                                <i class="bi bi-calendar-check"></i> Scheduled
+                            </span>
+                            break;
+                        case AppointmentStatus.Completed:
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> Completed
+                            </span>
+                            break;
+                        case AppointmentStatus.Cancelled:
+                            <span class="badge bg-danger">
+                                <i class="bi bi-x-circle"></i> Cancelled
+                            </span>
+                            break;
+                        case AppointmentStatus.NoShow:
+                            <span class="badge bg-warning text-dark">
+                                <i class="bi bi-exclamation-triangle"></i> No Show
+                            </span>
+                            break;
+                    }
+                </p>
+                <p>
+                    <strong>Reason:</strong><br />
+                    @if (!string.IsNullOrWhiteSpace(Model.Reason))
+                    {
+                        @Model.Reason
+                    }
+                    else
+                    {
+                        <span class="text-muted">No reason provided.</span>
+                    }
+                </p>
+                <p class="text-muted mb-0">
+                    <small>
+                        Created at: @Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")<br />
+                        @if (Model.UpdatedAt.HasValue)
+                        {
+                            <span>Last updated: @Model.UpdatedAt.Value.ToString("yyyy-MM-dd HH:mm")</span>
+                        }
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PATIENT / OWNER -->
+    <div class="col-lg-3">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-bandaid"></i> Animal
+            </div>
+            <div class="card-body">
+                @if (animal != null)
+                {
+                    <p class="fw-semibold">@animal.Name</p>
+                    <p class="mb-1">
+                        <strong>Species:</strong> @animal.Species
+                    </p>
+                    @if (!string.IsNullOrWhiteSpace(animal.Breed))
+                    {
+                        <p class="mb-1">
+                            <strong>Breed:</strong> @animal.Breed
+                        </p>
+                    }
+                    @if (animal.DateOfBirth.HasValue)
+                    {
+                        <p class="mb-1">
+                            <strong>Date of Birth:</strong> @animal.DateOfBirth.Value.ToString("yyyy-MM-dd")
+                        </p>
+                    }
+                    <a asp-controller="Animals" asp-action="Details" asp-route-id="@animal.Id"
+                       class="btn btn-sm btn-outline-primary mt-2">
+                        <i class="bi bi-eye"></i> View animal
+                    </a>
+                }
+                else
+                {
+                    <p class="text-muted">No animal information.</p>
+                }
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <i class="bi bi-person"></i> Owner
+            </div>
+            <div class="card-body">
+                @if (owner != null)
+                {
+                    <p class="fw-semibold mb-1">@owner.FirstName @owner.LastName</p>
+                    @if (!string.IsNullOrWhiteSpace(owner.PhoneNumber))
+                    {
+                        <p class="mb-1">
+                            <i class="bi bi-telephone"></i> @owner.PhoneNumber
+                        </p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(owner.Email))
+                    {
+                        <p class="mb-1">
+                            <i class="bi bi-envelope"></i> @owner.Email
+                        </p>
+                    }
+                    <a asp-controller="Owners" asp-action="Details" asp-route-id="@owner.Id"
+                       class="btn btn-sm btn-outline-secondary mt-2">
+                        <i class="bi bi-eye"></i> View owner
+                    </a>
+                }
+                else
+                {
+                    <p class="text-muted">No owner information.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- VET -->
+    <div class="col-lg-3">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-success text-white">
+                <i class="bi bi-person-badge"></i> Veterinarian
+            </div>
+            <div class="card-body">
+                @if (vet != null)
+                {
+                    <p class="fw-semibold mb-1">@vet.FirstName @vet.LastName</p>
+                    @if (!string.IsNullOrWhiteSpace(vet.Email))
+                    {
+                        <p class="mb-1">
+                            <i class="bi bi-envelope"></i> @vet.Email
+                        </p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(vet.PhoneNumber))
+                    {
+                        <p class="mb-1">
+                            <i class="bi bi-telephone"></i> @vet.PhoneNumber
+                        </p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(vet.SpecializationSummary))
+                    {
+                        <p class="mb-1">
+                            <strong>Specialization:</strong><br />
+                            @vet.SpecializationSummary
+                        </p>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">No veterinarian information.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary me-2">
+            <i class="bi bi-pencil-square"></i> Edit
+        </a>
+    }
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to list
+    </a>
+</div>

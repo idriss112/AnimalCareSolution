@@ -1,0 +1,153 @@
+﻿@model AnimalCare.Models.VetSchedule
+
+@{
+    ViewData["Title"] = "Add Vet Schedule";
+}
+
+<h2 class="mb-1">
+    <i class="bi bi-calendar-plus text-primary"></i> Add Veterinarian Schedule
+</h2>
+<p class="text-muted">
+    Define when a veterinarian is available for appointments on a specific date or as a recurring weekly schedule.
+</p>
+<hr />
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <!-- Veterinarian -->
+                    <div class="mb-3">
+                        <label asp-for="VeterinarianId" class="form-label">
+                            <i class="bi bi-person-badge"></i> Veterinarian
+                        </label>
+                        <select asp-for="VeterinarianId" class="form-select" asp-items="ViewBag.VeterinarianId">
+                            <option value="">-- Select Veterinarian --</option>
+                        </select>
+                        <span asp-validation-for="VeterinarianId" class="text-danger"></span>
+                    </div>
+
+                    <!-- Recurring Toggle -->
+                    <div class="form-check form-switch mb-3">
+                        <input asp-for="IsRecurring" class="form-check-input" id="recurringSwitch" />
+                        <label asp-for="IsRecurring" class="form-check-label">
+                            Recurring weekly schedule
+                        </label>
+                        <div class="form-text">
+                            Turn this on for a weekly recurring schedule (e.g. every Monday).
+                            Turn it off for a one-time schedule on a specific date.
+                        </div>
+                    </div>
+
+                    <!-- Date / DayOfWeek -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Date" class="form-label">
+                                <i class="bi bi-calendar-day"></i> Specific Date
+                            </label>
+                            <input asp-for="Date" type="date" class="form-control"
+                                   min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                            <span asp-validation-for="Date" class="text-danger"></span>
+                            <div class="form-text">
+                                Use this for a one-time schedule. Leave empty if using recurring.
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="DayOfWeek" class="form-label">
+                                <i class="bi bi-arrow-repeat"></i> Day of Week (Recurring)
+                            </label>
+                            <select asp-for="DayOfWeek" class="form-select">
+                                <option value="">-- Select Day --</option>
+                                @foreach (DayOfWeek day in Enum.GetValues(typeof(DayOfWeek)))
+                                {
+                                    <option value="@((int)day)">@day</option>
+                                }
+                            </select>
+                            <span asp-validation-for="DayOfWeek" class="text-danger"></span>
+                            <div class="form-text">
+                                Use this with "Recurring weekly" enabled.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time Range -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="StartTime" class="form-label">
+                                <i class="bi bi-clock"></i> Start Time
+                            </label>
+                            <input asp-for="StartTime" type="time" class="form-control" />
+                            <span asp-validation-for="StartTime" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="EndTime" class="form-label">
+                                <i class="bi bi-clock-history"></i> End Time
+                            </label>
+                            <input asp-for="EndTime" type="time" class="form-control" />
+                            <span asp-validation-for="EndTime" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Active -->
+                    <div class="form-check form-switch mb-3">
+                        <input asp-for="IsActive" class="form-check-input" />
+                        <label asp-for="IsActive" class="form-check-label">
+                            Active schedule
+                        </label>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        Overlap checks, clinic opening hours, and rules like "date OR day-of-week"
+                        are enforced in the controller/service layer.
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Save
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Optional UX: you could enable/disable Date / DayOfWeek based on IsRecurring here
+        document.addEventListener('DOMContentLoaded', function () {
+            var recurringSwitch = document.getElementById('recurringSwitch');
+            var dateInput = document.querySelector('input[name="Date"]');
+            var daySelect = document.querySelector('select[name="DayOfWeek"]');
+
+            function toggleInputs() {
+                if (recurringSwitch.checked) {
+                    // Recurring -> DayOfWeek primary
+                    daySelect.removeAttribute('disabled');
+                    dateInput.removeAttribute('disabled'); // keep enabled but user guidance handles it
+                } else {
+                    daySelect.removeAttribute('disabled');
+                    dateInput.removeAttribute('disabled');
+                }
+            }
+
+            if (recurringSwitch && dateInput && daySelect) {
+                recurringSwitch.addEventListener('change', toggleInputs);
+                toggleInputs();
+            }
+        });
+    </script>
+}

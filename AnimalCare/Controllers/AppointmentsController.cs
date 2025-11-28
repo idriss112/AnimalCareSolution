@@ -102,24 +102,27 @@ namespace AnimalCare.Controllers
         [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Create(
             [Bind("AnimalId,VeterinarianId,AppointmentDateTime,DurationMinutes,Reason,Status")]
-            Appointment appointment)
+    Appointment appointment)
         {
+            // Remove navigation properties from validation
+            ModelState.Remove("Animal");
+            ModelState.Remove("Veterinarian");
+            ModelState.Remove("CreatedAt");
+            ModelState.Remove("UpdatedAt");
+
             // Basic validation: ensure IDs > 0
             if (appointment.AnimalId <= 0)
             {
                 ModelState.AddModelError("AnimalId", "Please select an animal.");
             }
-
             if (appointment.VeterinarianId <= 0)
             {
                 ModelState.AddModelError("VeterinarianId", "Please select a veterinarian.");
             }
-
             if (appointment.DurationMinutes <= 0)
             {
                 ModelState.AddModelError("DurationMinutes", "Duration must be greater than 0.");
             }
-
             if (ModelState.IsValid)
             {
                 // BUSINESS RULE 1: Cannot book in the past
@@ -134,7 +137,6 @@ namespace AnimalCare.Controllers
                         appointment.VeterinarianId,
                         appointment.AppointmentDateTime,
                         appointment.DurationMinutes);
-
                     if (!vetAvailable)
                     {
                         ModelState.AddModelError("AppointmentDateTime",
@@ -148,7 +150,6 @@ namespace AnimalCare.Controllers
                             appointment.AppointmentDateTime,
                             appointment.DurationMinutes,
                             null); // new appointment, no ID yet
-
                         if (hasConflict)
                         {
                             ModelState.AddModelError("AppointmentDateTime",
@@ -156,17 +157,14 @@ namespace AnimalCare.Controllers
                         }
                     }
                 }
-
                 if (ModelState.IsValid)
                 {
                     try
                     {
                         appointment.CreatedAt = DateTime.Now;
                         appointment.UpdatedAt = DateTime.Now;
-
                         _context.Add(appointment);
                         await _context.SaveChangesAsync();
-
                         TempData["SuccessMessage"] = "Appointment created successfully.";
                         return RedirectToAction(nameof(Index));
                     }
@@ -177,7 +175,6 @@ namespace AnimalCare.Controllers
                     }
                 }
             }
-
             // If we reach here → there was a validation error
             await PopulateDropDowns(appointment.AnimalId, appointment.VeterinarianId);
             return View(appointment);
@@ -319,6 +316,59 @@ namespace AnimalCare.Controllers
             return View(appointment);
         }
 
+
+        /// <summary>
+        /// For veterinarians: see only their own appointments, grouped by date.
+        /// </summary>
+        [Authorize(Roles = "Veterinarian")]
+        public async Task<IActionResult> MyAppointments()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var user = await _context.Users
+                .Include(u => u.Veterinarian)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user?.VeterinarianId == null)
+            {
+                TempData["ErrorMessage"] = "No veterinarian profile linked to this user.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            int vetId = user.VeterinarianId.Value;
+
+            var appointments = await _context.Appointments
+                .Include(a => a.Animal)
+                    .ThenInclude(an => an.Owner)
+                .Include(a => a.Veterinarian)
+                .Where(a => a.VeterinarianId == vetId)
+                .OrderBy(a => a.AppointmentDateTime)
+                .ToListAsync();
+
+            return View(appointments);
+        }
+
+        /// <summary>
+        /// For Admin / Receptionist: today's full clinic schedule.
+        /// </summary>
+        [Authorize(Roles = "Admin,Receptionist")]
+        public async Task<IActionResult> TodaysSchedule()
+        {
+            var today = DateTime.Today;
+
+            var appointments = await _context.Appointments
+                .Include(a => a.Animal)
+                    .ThenInclude(an => an.Owner)
+                .Include(a => a.Veterinarian)
+                .Where(a => a.AppointmentDateTime.Date == today)
+                .OrderBy(a => a.AppointmentDateTime)
+                .ToListAsync();
+
+            return View(appointments);
+        }
+
+
+
         /// <summary>
         /// POST Delete – here we physically delete appointment.
         /// In a real clinic, better is to just mark as Cancelled.
@@ -354,28 +404,38 @@ namespace AnimalCare.Controllers
         private async Task<bool> IsVetAvailable(int veterinarianId, DateTime appointmentDateTime, int durationMinutes)
         {
             var appointmentDate = appointmentDateTime.Date;
+            var appointmentDayOfWeek = appointmentDateTime.DayOfWeek;
             var appointmentStart = appointmentDateTime.TimeOfDay;
             var appointmentEnd = appointmentStart.Add(TimeSpan.FromMinutes(durationMinutes));
 
-            // Get schedule for this vet on that exact date and active
-            var schedule = await _context.VetSchedules
+            // Get all active schedules that apply to this date:
+            // 1) Specific Date == appointmentDate
+            // OR
+            // 2) Recurring schedule on same DayOfWeek
+            var schedules = await _context.VetSchedules
                 .Where(s => s.VeterinarianId == veterinarianId &&
-                            s.Date == appointmentDate &&
-                            s.IsActive)
-                .FirstOrDefaultAsync();
+                            s.IsActive &&
+                            (
+                                (s.Date.HasValue && s.Date.Value.Date == appointmentDate) ||
+                                (s.IsRecurring && s.DayOfWeek.HasValue && s.DayOfWeek.Value == appointmentDayOfWeek)
+                            ))
+                .ToListAsync();
 
-            if (schedule == null)
+            if (!schedules.Any())
             {
-                // No schedule for that day = vet not available
+                // No schedule for that date / day ⇒ vet not available
                 return false;
             }
 
-            // Appointment must start after or at schedule start, and end before or at schedule end
-            bool fitsInSchedule = appointmentStart >= schedule.StartTime
-                                  && appointmentEnd <= schedule.EndTime;
+            // Appointment must fit inside at least one schedule interval
+            bool fitsAnySchedule = schedules.Any(s =>
+                appointmentStart >= s.StartTime &&
+                appointmentEnd <= s.EndTime
+            );
 
-            return fitsInSchedule;
+            return fitsAnySchedule;
         }
+
 
         /// <summary>
         /// Helper – checks overlapping appointments for a vet.
@@ -433,18 +493,28 @@ namespace AnimalCare.Controllers
         /// </summary>
         private async Task PopulateDropDowns(int? selectedAnimalId = null, int? selectedVetId = null)
         {
+            // Load animals with owners for display
             var animals = await _context.Animals
                 .Include(a => a.Owner)
                 .OrderBy(a => a.Name)
                 .ToListAsync();
 
-            // Show animal name + owner for clarity
+            // Display: "AnimalName (OwnerLastName)" when owner exists
             var animalItems = animals.Select(a => new
             {
                 a.Id,
-                Display = $"{a.Name} ({a.Owner.LastName})"
+                Display = a.Owner != null
+                    ? $"{a.Name} ({a.Owner.LastName})"
+                    : a.Name
             });
 
+            // This is what the views use: ViewBag.Animals
+            ViewBag.Animals = new SelectList(animalItems, "Id", "Display", selectedAnimalId);
+
+            // Keep this too in case some scaffolded views still use ViewBag.AnimalId
+            ViewBag.AnimalId = ViewBag.Animals;
+
+            // Load active vets
             var vets = await _context.Veterinarians
                 .Where(v => v.IsActive)
                 .OrderBy(v => v.LastName)
@@ -457,8 +527,11 @@ namespace AnimalCare.Controllers
                 Display = $"{v.FirstName} {v.LastName}"
             });
 
-            ViewBag.AnimalId = new SelectList(animalItems, "Id", "Display", selectedAnimalId);
-            ViewBag.VeterinarianId = new SelectList(vetItems, "Id", "Display", selectedVetId);
+            // Used by the new views
+            ViewBag.Veterinarians = new SelectList(vetItems, "Id", "Display", selectedVetId);
+
+            // Keep compatibility name
+            ViewBag.VeterinarianId = ViewBag.Veterinarians;
         }
 
         private bool AppointmentExists(int id)

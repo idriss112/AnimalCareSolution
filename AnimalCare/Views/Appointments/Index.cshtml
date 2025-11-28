@@ -1,0 +1,175 @@
+﻿@using AnimalCare.Models
+@model IEnumerable<Appointment>
+
+@{
+    ViewData["Title"] = "Appointments";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="mb-0">
+            <i class="bi bi-calendar3"></i> Appointments
+        </h2>
+        <p class="text-muted mb-0">All scheduled visits in the clinic</p>
+    </div>
+
+    @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
+    {
+        <div>
+            <a asp-action="Create" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Book Appointment
+            </a>
+        </div>
+    }
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">
+                    <i class="bi bi-calendar-date"></i> Filter by date
+                </label>
+                <input type="date" name="date" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">
+                    <i class="bi bi-search"></i> Search (animal / owner)
+                </label>
+                <input type="text" name="search" class="form-control" placeholder="Optional – controller can handle later" />
+            </div>
+            <div class="col-md-4 d-flex align-items-end justify-content-end">
+                <button type="submit" class="btn btn-outline-primary me-2">
+                    <i class="bi bi-funnel"></i> Apply filters
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-clockwise"></i> Reset
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (Model != null && Model.Any())
+{
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th><i class="bi bi-clock"></i> Date & Time</th>
+                            <th><i class="bi bi-bandaid"></i> Animal</th>
+                            <th><i class="bi bi-person"></i> Owner</th>
+                            <th><i class="bi bi-person-badge"></i> Veterinarian</th>
+                            <th><i class="bi bi-hourglass-split"></i> Duration</th>
+                            <th><i class="bi bi-flag"></i> Status</th>
+                            <th class="text-end"><i class="bi bi-gear"></i> Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var appointment in Model.OrderBy(a => a.AppointmentDateTime))
+                        {
+                            var animal = appointment.Animal;
+                            var owner = animal?.Owner;
+                            var vet = appointment.Veterinarian;
+
+                            <tr>
+                                <td>
+                                    <span class="fw-semibold">
+                                        @appointment.AppointmentDateTime.ToString("MMM dd, yyyy HH:mm")
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (animal != null)
+                                    {
+                                        <a asp-controller="Animals" asp-action="Details" asp-route-id="@animal.Id" class="text-decoration-none">
+                                            <i class="bi bi-bandaid"></i> @animal.Name
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">N/A</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (owner != null)
+                                    {
+                                        <a asp-controller="Owners" asp-action="Details" asp-route-id="@owner.Id" class="text-decoration-none">
+                                            <i class="bi bi-person"></i> @owner.FirstName @owner.LastName
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">N/A</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (vet != null)
+                                    {
+                                        <i class="bi bi-person-badge"></i> 
+                                        @vet.FirstName @vet.LastName
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">N/A</span>
+                                    }
+                                </td>
+                                <td>@appointment.DurationMinutes min</td>
+                                <td>
+                                    @switch (appointment.Status)
+                                    {
+                                        case AppointmentStatus.Scheduled:
+                                            <span class="badge bg-primary">
+                                                <i class="bi bi-calendar-check"></i> Scheduled
+                                            </span>
+                                            break;
+                                        case AppointmentStatus.Completed:
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle"></i> Completed
+                                            </span>
+                                            break;
+                                        case AppointmentStatus.Cancelled:
+                                            <span class="badge bg-danger">
+                                                <i class="bi bi-x-circle"></i> Cancelled
+                                            </span>
+                                            break;
+                                        case AppointmentStatus.NoShow:
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-exclamation-triangle"></i> No Show
+                                            </span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <a asp-action="Details" asp-route-id="@appointment.Id" class="btn btn-sm btn-outline-info me-1">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+
+                                    @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@appointment.Id" class="btn btn-sm btn-outline-warning me-1">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                    }
+
+                                    @* If you later add Cancel/Delete actions, you can add buttons here *@
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-info shadow-sm">
+        <i class="bi bi-info-circle"></i> No appointments found.
+        @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
+        {
+            <span> You can <a asp-action="Create">book the first appointment</a>.</span>
+        }
+    </div>
+}

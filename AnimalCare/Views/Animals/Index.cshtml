@@ -1,0 +1,141 @@
+﻿@model IEnumerable<AnimalCare.Models.Animal>
+
+@{
+    ViewData["Title"] = "Animals";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">
+        <i class="bi bi-heart-pulse me-2 text-primary"></i> Animals
+    </h2>
+    @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
+    {
+        <a asp-action="Create" class="btn btn-primary shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i> Add New Animal
+        </a>
+    }
+</div>
+
+<!-- SEARCH BAR -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-2">
+            <div class="col-md-10">
+                <input type="text"
+                       name="searchString"
+                       class="form-control"
+                       placeholder="Search by animal name, species, or owner..." />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ANIMALS TABLE -->
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        @if (Model != null && Model.Any())
+        {
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-primary">
+                    <tr>
+                        <th><i class="bi bi-tag"></i> Name</th>
+                        <th><i class="bi bi-bug"></i> Species</th>
+                        <th><i class="bi bi-card-list"></i> Breed</th>
+                        <th><i class="bi bi-gender-ambiguous"></i> Sex</th>
+                        <th><i class="bi bi-calendar3"></i> Date of Birth</th>
+                        <th><i class="bi bi-person"></i> Owner</th>
+                        <th><i class="bi bi-speedometer2"></i> Weight (kg)</th>
+                        <th style="width: 180px;"><i class="bi bi-gear-fill"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var animal in Model)
+                    {
+                        <tr>
+                            <td>@animal.Name</td>
+                            <td>@animal.Species</td>
+                            <td>@(string.IsNullOrEmpty(animal.Breed) ? "-" : animal.Breed)</td>
+                            <td>@(string.IsNullOrEmpty(animal.Sex) ? "-" : animal.Sex)</td>
+                            <td>
+                                @if (animal.DateOfBirth.HasValue)
+                                {
+                                    @animal.DateOfBirth.Value.ToString("yyyy-MM-dd")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Unknown</span>
+                                }
+                            </td>
+                            <td>
+                                @if (animal.Owner != null)
+                                {
+                                    <a asp-controller="Owners"
+                                       asp-action="Details"
+                                       asp-route-id="@animal.OwnerId">
+                                        <i class="bi bi-person-badge"></i>
+                                        @animal.Owner.FirstName @animal.Owner.LastName
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No owner</span>
+                                }
+                            </td>
+                            <td>
+                                @if (animal.Weight.HasValue)
+                                {
+                                    @animal.Weight.Value.ToString("0.#")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td class="d-flex gap-2">
+                                <a asp-action="Details"
+                                   asp-route-id="@animal.Id"
+                                   class="btn btn-sm btn-outline-info">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+
+                                @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
+                                {
+                                    <a asp-action="Edit"
+                                       asp-route-id="@animal.Id"
+                                       class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                }
+
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a asp-action="Delete"
+                                       asp-route-id="@animal.Id"
+                                       class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="alert alert-info shadow-sm m-3">
+                <i class="bi bi-exclamation-circle me-2"></i>
+                <span>No animals found.</span>
+                @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
+                {
+                    <a asp-action="Create" class="fw-bold">Add the first animal →</a>
+                }
+            </div>
+        }
+    </div>
+</div>

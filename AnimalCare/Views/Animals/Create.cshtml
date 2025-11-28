@@ -1,0 +1,149 @@
+﻿@model AnimalCare.Models.Animal
+
+@{
+    ViewData["Title"] = "Create Animal";
+}
+
+<h2>
+    <i class="bi bi-plus-circle"></i> Add New Animal
+</h2>
+<hr />
+
+<!-- Display ALL validation errors at the top -->
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <h4>Validation Errors:</h4>
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        <form asp-action="Create" method="post" id="animalForm">
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-primary text-white d-flex align-items-center">
+                    <i class="bi bi-heart-pulse me-2"></i>
+                    <h5 class="mb-0">Animal Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Name" class="form-label">Name *</label>
+                            <input asp-for="Name" class="form-control" required />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Species" class="form-label">Species *</label>
+                            <input asp-for="Species" class="form-control" placeholder="e.g. Dog, Cat" required />
+                            <span asp-validation-for="Species" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Breed" class="form-label">Breed</label>
+                            <input asp-for="Breed" class="form-control" />
+                            <span asp-validation-for="Breed" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="Sex" class="form-label">Sex</label>
+                            <select asp-for="Sex" class="form-select">
+                                <option value="">-- Select --</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Unknown">Unknown</option>
+                            </select>
+                            <span asp-validation-for="Sex" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="DateOfBirth" class="form-label">Date of Birth</label>
+                            <input asp-for="DateOfBirth" type="date" class="form-control" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Weight" class="form-label">Weight (kg)</label>
+                            <input asp-for="Weight" type="text"  class="form-control" />
+                            <span asp-validation-for="Weight" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-8">
+                            <label asp-for="ImportantNotes" class="form-label">Important Notes</label>
+                            <textarea asp-for="ImportantNotes"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Allergies, chronic conditions, behaviour notes..."></textarea>
+                            <span asp-validation-for="ImportantNotes" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-success text-white d-flex align-items-center">
+                    <i class="bi bi-person-heart me-2"></i>
+                    <h5 class="mb-0">Owner</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="OwnerId" class="form-label fw-semibold">Owner *</label>
+                        <select asp-for="OwnerId" class="form-select" asp-items="ViewBag.OwnerId" required>
+                            <option value="">-- Select Owner --</option>
+                        </select>
+                        <span asp-validation-for="OwnerId" class="text-danger"></span>
+                        <small class="form-text text-muted">
+                            Don't see the owner?
+                            <a asp-controller="Owners" asp-action="Create" target="_blank">Add a new owner</a>.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary" id="saveButton">
+                    <i class="bi bi-check-circle"></i> Save Animal
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Debug script to see what's happening
+        document.getElementById('animalForm').addEventListener('submit', function(e) {
+            console.log('Form is submitting...');
+            console.log('Form action:', this.action);
+            console.log('Form method:', this.method);
+
+            // Log form data
+            const formData = new FormData(this);
+            console.log('Form Data:');
+            for (let [key, value] of formData.entries()) {
+                console.log(key + ': ' + value);
+            }
+        });
+
+        document.getElementById('saveButton').addEventListener('click', function(e) {
+            console.log('Save button clicked');
+        });
+    </script>
+}

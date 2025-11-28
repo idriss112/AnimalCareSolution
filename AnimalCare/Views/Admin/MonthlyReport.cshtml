@@ -1,0 +1,295 @@
+﻿@model AnimalCare.Models.MonthlyReportViewModel
+
+@{
+    ViewData["Title"] = "Monthly Report";
+    var hasData = Model != null && Model.TotalAppointments > 0;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Monthly Appointment Report</h1>
+        <p class="text-muted mb-0">
+            Analyze appointments, cancellations, and performance by veterinarian.
+        </p>
+    </div>
+    <div>
+        <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left-short me-1"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- MONTH/YEAR FILTER -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form asp-action="MonthlyReport" method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Month</label>
+                <select name="month" class="form-select">
+                    @for (int i = 1; i <= 12; i++)
+                    {
+                        <option value="@i" selected="@(i == Model.Month)">
+                            @(new DateTime(2000, i, 1).ToString("MMMM"))
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Year</label>
+                <select name="year" class="form-select">
+                    @for (int y = DateTime.Now.Year; y >= DateTime.Now.Year - 5; y--)
+                    {
+                        <option value="@y" selected="@(y == Model.Year ? "selected" : null)">
+                            @y
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4 d-grid">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search me-1"></i> Generate Report
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SUMMARY TITLE -->
+<div class="mb-3">
+    <h5 class="mb-1">
+        Report for @(new DateTime(Model.Year, Model.Month, 1).ToString("MMMM yyyy"))
+    </h5>
+    @if (!hasData)
+    {
+        <span class="badge bg-warning-subtle text-warning">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i> No appointment data for this period.
+        </span>
+    }
+</div>
+
+<!-- SUMMARY CARDS -->
+<div class="row g-3 mb-4">
+    <!-- Total Appointments -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center">
+                <div class="text-muted text-uppercase small mb-1">
+                    <i class="bi bi-calendar2-week me-1 text-primary"></i> Total Appointments
+                </div>
+                <div class="display-6 fw-bold mb-1">@Model.TotalAppointments</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completed -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center">
+                <div class="text-muted text-uppercase small mb-1">
+                    <i class="bi bi-check-circle-fill me-1 text-success"></i> Completed
+                </div>
+                <div class="display-6 fw-bold mb-1">@Model.CompletedCount</div>
+                <div class="small text-muted">
+                    @{
+                        double pctCompleted = Model.TotalAppointments > 0
+                            ? (double)Model.CompletedCount / Model.TotalAppointments * 100
+                            : 0;
+                    }
+                    @pctCompleted.ToString("0.0")% of all
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancelled -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center">
+                <div class="text-muted text-uppercase small mb-1">
+                    <i class="bi bi-x-circle-fill me-1 text-danger"></i> Cancelled
+                </div>
+                <div class="display-6 fw-bold mb-1">@Model.CancelledCount</div>
+                <div class="small text-muted">
+                    @Model.CancellationRate.ToString("0.0")% cancellation rate
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Shows -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center">
+                <div class="text-muted text-uppercase small mb-1">
+                    <i class="bi bi-person-x-fill me-1 text-warning"></i> No Shows
+                </div>
+                <div class="display-6 fw-bold mb-1">@Model.NoShowCount</div>
+                <div class="small text-muted">
+                    @{
+                        double pctNoShow = Model.TotalAppointments > 0
+                            ? (double)Model.NoShowCount / Model.TotalAppointments * 100
+                            : 0;
+                    }
+                    @pctNoShow.ToString("0.0")% of all
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- APPOINTMENTS BY VET TABLE -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-light d-flex align-items-center">
+        <i class="bi bi-people-fill me-2 text-primary"></i>
+        <h5 class="mb-0">Appointments by Veterinarian</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.AppointmentsByVet != null && Model.AppointmentsByVet.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Veterinarian</th>
+                            <th class="text-center">Total Appointments</th>
+                            <th class="text-center">Completed</th>
+                            <th>Completion Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var vetStat in Model.AppointmentsByVet)
+                        {
+                            var completionRate = vetStat.AppointmentCount > 0
+                                ? (double)vetStat.CompletedCount / vetStat.AppointmentCount * 100
+                                : 0;
+
+                            <tr>
+                                <td>@vetStat.VeterinarianName</td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary-subtle text-primary">
+                                        @vetStat.AppointmentCount
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-success-subtle text-success">
+                                        @vetStat.CompletedCount
+                                    </span>
+                                </td>
+                                <td style="min-width: 200px;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="flex-grow-1">
+                                            <div class="progress" style="height: 0.9rem;">
+                                                <div class="progress-bar bg-success"
+                                                     role="progressbar"
+                                                     style="width: @completionRate.ToString("0.0")%;"
+                                                     aria-valuenow="@completionRate"
+                                                     aria-valuemin="0"
+                                                     aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">@completionRate.ToString("0.0")%</small>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted mb-0">
+                No veterinarian appointment data for this period.
+            </p>
+        }
+    </div>
+</div>
+
+<!-- VISUAL CHART -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-light d-flex align-items-center">
+        <i class="bi bi-bar-chart-line-fill me-2 text-info"></i>
+        <h5 class="mb-0">Visual Overview</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.AppointmentsByVet != null && Model.AppointmentsByVet.Any())
+        {
+            <canvas id="appointmentChart" style="max-height: 400px;"></canvas>
+        }
+        else
+        {
+            <p class="text-muted mb-0">
+                Not enough data to display chart.
+            </p>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (function () {
+            var hasData = @((Model.AppointmentsByVet != null && Model.AppointmentsByVet.Any()) ? "true" : "false");
+            if (!hasData) return;
+
+            var ctx = document.getElementById('appointmentChart').getContext('2d');
+
+            var labels = [
+                @Html.Raw(string.Join(",", Model.AppointmentsByVet
+                    .Select(v => "'" + v.VeterinarianName.Replace("'", "\\'") + "'")))
+            ];
+
+            var totalData = [
+                @Html.Raw(string.Join(",", Model.AppointmentsByVet.Select(v => v.AppointmentCount)))
+            ];
+
+            var completedData = [
+                @Html.Raw(string.Join(",", Model.AppointmentsByVet.Select(v => v.CompletedCount)))
+            ];
+
+            var chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Total Appointments',
+                            data: totalData,
+                            backgroundColor: 'rgba(13, 110, 253, 0.4)',
+                            borderColor: 'rgba(13, 110, 253, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Completed',
+                            data: completedData,
+                            backgroundColor: 'rgba(25, 135, 84, 0.4)',
+                            borderColor: 'rgba(25, 135, 84, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+}

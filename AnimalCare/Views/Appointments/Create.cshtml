@@ -1,0 +1,184 @@
+﻿@using AnimalCare.Models
+@model Appointment
+
+@{
+    ViewData["Title"] = "Book Appointment";
+}
+
+<h2 class="mb-1">
+    <i class="bi bi-plus-circle"></i> Book New Appointment
+</h2>
+<p class="text-muted">Choose the patient, veterinarian, and time slot. The system will prevent double-booking.</p>
+<hr />
+
+<!-- GLOBAL VALIDATION SUMMARY -->
+<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+<div class="row">
+    <div class="col-lg-10">
+        <form asp-action="Create" method="post" class="needs-validation" novalidate>
+            @* Anti-forgery token is automatically added *@
+
+            <div class="row">
+                <!-- PATIENT CARD -->
+                <div class="col-md-6">
+                    <div class="card mb-3 shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <i class="bi bi-bandaid"></i> Patient Information
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label asp-for="AnimalId" class="form-label fw-semibold">Select Animal</label>
+                                <select asp-for="AnimalId" class="form-select" asp-items="ViewBag.Animals" required>
+                                    <option value="">-- Select Animal --</option>
+                                </select>
+                                <span asp-validation-for="AnimalId" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    Don't see the animal? <a asp-controller="Animals" asp-action="Create">Add a new animal</a>.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VET CARD -->
+                <div class="col-md-6">
+                    <div class="card mb-3 shadow-sm">
+                        <div class="card-header bg-success text-white">
+                            <i class="bi bi-person-badge"></i> Veterinarian
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label asp-for="VeterinarianId" class="form-label fw-semibold">Select Veterinarian</label>
+                                <select asp-for="VeterinarianId" class="form-select" asp-items="ViewBag.Veterinarians" required>
+                                    <option value="">-- Select Veterinarian --</option>
+                                </select>
+                                <span asp-validation-for="VeterinarianId" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    Only active veterinarians are listed.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DATE & TIME -->
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <i class="bi bi-calendar-event"></i> Appointment Date & Time
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="AppointmentDateTime" class="form-label fw-semibold">
+                                Date & Time
+                            </label>
+                            @* Single datetime-local input (easier for model binding) *@
+                            <input asp-for="AppointmentDateTime"
+                                   class="form-control"
+                                   type="datetime-local"
+                                   min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                            <span asp-validation-for="AppointmentDateTime" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                The system will reject past dates and times.
+                            </small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="DurationMinutes" class="form-label fw-semibold">
+                                Duration (minutes)
+                            </label>
+                            <select asp-for="DurationMinutes" class="form-select">
+                                <option value="15">15 minutes</option>
+                                <option value="30" selected>30 minutes</option>
+                                <option value="45">45 minutes</option>
+                                <option value="60">60 minutes</option>
+                            </select>
+                            <span asp-validation-for="DurationMinutes" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                Standard durations are 15–60 minutes. Your controller enforces 1–480.
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- SPECIAL CONFLICT MESSAGE -->
+                    @if (ViewData.ModelState.ContainsKey(nameof(Model.AppointmentDateTime)) &&
+                                        ViewData.ModelState[nameof(Model.AppointmentDateTime)]!.Errors.Count > 0)
+                    {
+                        <div class="alert alert-warning mt-3" role="alert">
+                            <h5 class="alert-heading">
+                                <i class="bi bi-exclamation-triangle"></i> Scheduling problem
+                            </h5>
+                            <p class="mb-1">
+                                @ViewData.ModelState[nameof(Model.AppointmentDateTime)]!.Errors[0].ErrorMessage
+                            </p>
+                            <p class="mb-0">
+                                Please adjust the time or choose another veterinarian.
+                            </p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- DETAILS -->
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header">
+                    <i class="bi bi-card-text"></i> Additional Details
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="Reason" class="form-label fw-semibold">Reason for Visit</label>
+                        <textarea asp-for="Reason" class="form-control" rows="3"
+                                  placeholder="E.g., Annual checkup, vaccination, skin issue..."></textarea>
+                        <span asp-validation-for="Reason" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Status" class="form-label fw-semibold">Status</label>
+                        <select asp-for="Status" class="form-select">
+                            <option value="0">Scheduled</option>
+                            <option value="1">Completed</option>
+                            <option value="2">Cancelled</option>
+                            <option value="3">No Show</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger"></span>
+                        <small class="form-text text-muted">
+                            For new bookings, keep it as <strong>Scheduled</strong>.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary btn-lg me-2">
+                    <i class="bi bi-check-circle"></i> Book Appointment
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Extra safety: prevent selecting past date/time via JS (in addition to server-side)
+        document.addEventListener('DOMContentLoaded', function () {
+            var dtInput = document.querySelector('input[name="AppointmentDateTime"]');
+            if (dtInput) {
+                var now = new Date();
+                var local = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                    .toISOString()
+                    .slice(0, 16);
+                dtInput.setAttribute('min', local);
+            }
+        });
+    </script>
+}
