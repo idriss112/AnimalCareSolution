@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AnimalCare.Models
 {
@@ -10,22 +11,16 @@ namespace AnimalCare.Models
         [Required]
         public int VeterinarianId { get; set; }
 
-        // Optional specific date for special schedule
-        [DataType(DataType.Date)]
-        public DateTime? Date { get; set; }
-
-        // Optional recurring weekly schedule (e.g. every Monday)
-        public DayOfWeek? DayOfWeek { get; set; }
+        [Required]
+        public DayOfWeek DayOfWeek { get; set; }
 
         [Required]
         [DataType(DataType.Time)]
-        public TimeSpan StartTime { get; set; }
+        public TimeSpan StartTime { get; set; } = new TimeSpan(8, 0, 0); // Default 8:00 AM
 
         [Required]
         [DataType(DataType.Time)]
-        public TimeSpan EndTime { get; set; }
-
-        public bool IsRecurring { get; set; } = false;
+        public TimeSpan EndTime { get; set; } = new TimeSpan(16, 0, 0); // Default 4:00 PM
 
         public bool IsActive { get; set; } = true;
 

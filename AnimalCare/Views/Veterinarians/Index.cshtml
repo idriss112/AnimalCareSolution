@@ -26,7 +26,7 @@
                     <th><i class="bi bi-person-badge"></i> Name</th>
                     <th><i class="bi bi-envelope-at"></i> Email</th>
                     <th><i class="bi bi-telephone"></i> Phone</th>
-                    <th><i class="bi bi-card-text"></i> Specialization</th>
+                    <th><i class="bi bi-award"></i> Specialties</th>
                     <th><i class="bi bi-toggle-on"></i> Status</th>
                     <th><i class="bi bi-calendar-event"></i> Appointments</th>
                     <th><i class="bi bi-clock-history"></i> Created</th>
@@ -63,13 +63,17 @@
                                 }
                             </td>
                             <td>
-                                @if (!string.IsNullOrWhiteSpace(vet.SpecializationSummary))
+                                @* FIXED: Show actual specialties instead of summary *@
+                                @if (vet.VetSpecialties != null && vet.VetSpecialties.Any())
                                 {
-                                    <span>@vet.SpecializationSummary</span>
+                                    @foreach (var specialty in vet.VetSpecialties)
+                                    {
+                                        <span class="badge bg-success me-1">@specialty.Name</span>
+                                    }
                                 }
                                 else
                                 {
-                                    <span class="text-muted">Not specified</span>
+                                    <span class="text-muted">No specialties</span>
                                 }
                             </td>
                             <td>

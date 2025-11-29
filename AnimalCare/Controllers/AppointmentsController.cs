@@ -26,11 +26,11 @@ namespace AnimalCare.Controllers
         }
 
         /// <summary>
-        /// Index view:
-        /// - Admin + Receptionist: see all appointments
-        /// - Veterinarian: see only their appointments
+        /// Index view with filtering:
+        /// - Admin + Receptionist: see all appointments (with filters)
+        /// - Veterinarian: see only their appointments (with filters)
         /// </summary>
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(DateTime? date, string search)
         {
             // Get current user ID (from Identity)
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -44,8 +44,7 @@ namespace AnimalCare.Controllers
             IQueryable<Appointment> query = _context.Appointments
                 .Include(a => a.Animal)
                     .ThenInclude(an => an.Owner)
-                .Include(a => a.Veterinarian)
-                .OrderBy(a => a.AppointmentDateTime);
+                .Include(a => a.Veterinarian);
 
             // If current user is a Veterinarian, restrict to their appointments only
             if (User.IsInRole("Veterinarian") && user?.VeterinarianId != null)
@@ -54,9 +53,36 @@ namespace AnimalCare.Controllers
                 query = query.Where(a => a.VeterinarianId == vetId);
             }
 
-            // Admin + Receptionist see all appointments (no extra filter)
+            // Apply date filter if provided
+            if (date.HasValue)
+            {
+                var filterDate = date.Value.Date;
+                query = query.Where(a => a.AppointmentDateTime.Date == filterDate);
+            }
+
+            // Apply search filter if provided (search in animal name or owner name)
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim().ToLower();
+                query = query.Where(a =>
+                    a.Animal.Name.ToLower().Contains(search) ||
+                    (a.Animal.Owner != null && (
+                        a.Animal.Owner.FirstName.ToLower().Contains(search) ||
+                        a.Animal.Owner.LastName.ToLower().Contains(search) ||
+                        (a.Animal.Owner.FirstName + " " + a.Animal.Owner.LastName).ToLower().Contains(search)
+                    ))
+                );
+            }
+
+            // Order by date and time
+            query = query.OrderBy(a => a.AppointmentDateTime);
 
             var appointments = await query.ToListAsync();
+
+            // Pass filter values to view
+            ViewBag.FilterDate = date;
+            ViewBag.FilterSearch = search;
+
             return View(appointments);
         }
 
@@ -209,6 +235,11 @@ namespace AnimalCare.Controllers
         {
             if (id != appointment.Id)
                 return NotFound();
+
+            ModelState.Remove("Animal");
+            ModelState.Remove("Veterinarian");
+            ModelState.Remove("CreatedAt");
+            ModelState.Remove("UpdatedAt");
 
             if (appointment.AnimalId <= 0)
             {
@@ -401,33 +432,31 @@ namespace AnimalCare.Controllers
         /// <summary>
         /// Helper – checks if vet has a schedule that covers the requested time.
         /// </summary>
+        /// <summary>
+        /// Helper – checks if vet has a schedule that covers the requested time.
+        /// Updated for new recurring weekly schedule system (DayOfWeek only, 8 AM - 4 PM)
+        /// </summary>
         private async Task<bool> IsVetAvailable(int veterinarianId, DateTime appointmentDateTime, int durationMinutes)
         {
-            var appointmentDate = appointmentDateTime.Date;
             var appointmentDayOfWeek = appointmentDateTime.DayOfWeek;
             var appointmentStart = appointmentDateTime.TimeOfDay;
             var appointmentEnd = appointmentStart.Add(TimeSpan.FromMinutes(durationMinutes));
 
-            // Get all active schedules that apply to this date:
-            // 1) Specific Date == appointmentDate
-            // OR
-            // 2) Recurring schedule on same DayOfWeek
+            // Get all active schedules for this vet on this day of week
             var schedules = await _context.VetSchedules
                 .Where(s => s.VeterinarianId == veterinarianId &&
                             s.IsActive &&
-                            (
-                                (s.Date.HasValue && s.Date.Value.Date == appointmentDate) ||
-                                (s.IsRecurring && s.DayOfWeek.HasValue && s.DayOfWeek.Value == appointmentDayOfWeek)
-                            ))
+                            s.DayOfWeek == appointmentDayOfWeek)
                 .ToListAsync();
 
             if (!schedules.Any())
             {
-                // No schedule for that date / day ⇒ vet not available
+                // No schedule for this day of week ⇒ vet not available
                 return false;
             }
 
             // Appointment must fit inside at least one schedule interval
+            // (In new system, all schedules are 8:00 AM - 4:00 PM, but we check anyway)
             bool fitsAnySchedule = schedules.Any(s =>
                 appointmentStart >= s.StartTime &&
                 appointmentEnd <= s.EndTime

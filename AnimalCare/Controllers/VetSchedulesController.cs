@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using AnimalCare.ViewModels;
 
 namespace AnimalCare.Controllers
 {
@@ -14,9 +15,9 @@ namespace AnimalCare.Controllers
         private readonly AnimalCareDbContext _context;
         private readonly ILogger<VetSchedulesController> _logger;
 
-        // Define clinic opening hours (you can adjust)
-        private static readonly TimeSpan ClinicOpenTime = new TimeSpan(8, 0, 0);   // 08:00
-        private static readonly TimeSpan ClinicCloseTime = new TimeSpan(20, 0, 0); // 20:00
+        // Fixed working hours: 8 AM to 4 PM
+        private static readonly TimeSpan WorkStartTime = new TimeSpan(8, 0, 0);   // 08:00
+        private static readonly TimeSpan WorkEndTime = new TimeSpan(16, 0, 0);    // 16:00
 
         public VetSchedulesController(AnimalCareDbContext context, ILogger<VetSchedulesController> logger)
         {
@@ -25,92 +26,108 @@ namespace AnimalCare.Controllers
         }
 
         // GET: VetSchedules
+        // List all schedules, grouped by veterinarian
+        // GET: VetSchedules
         // List all schedules, optionally filtered by vetId
         public async Task<IActionResult> Index(int? veterinarianId)
         {
-            var query = _context.VetSchedules
-                .Include(s => s.Veterinarian)
-                .OrderBy(s => s.Veterinarian.LastName)
-                .ThenBy(s => s.Date)
-                .ThenBy(s => s.StartTime)
-                .AsQueryable();
+            // Get schedules with veterinarians
+            var schedulesQuery = from schedule in _context.VetSchedules
+                                 join vet in _context.Veterinarians on schedule.VeterinarianId equals vet.Id
+                                 where schedule.IsActive
+                                 select new
+                                 {
+                                     Schedule = schedule,
+                                     Veterinarian = vet
+                                 };
 
+            // Apply filter
             if (veterinarianId.HasValue)
             {
-                query = query.Where(s => s.VeterinarianId == veterinarianId.Value);
+                schedulesQuery = schedulesQuery.Where(x => x.Schedule.VeterinarianId == veterinarianId.Value);
             }
 
-            var schedules = await query.ToListAsync();
+            var results = await schedulesQuery.ToListAsync();
+
+            // Create grouped schedules using the ViewModel class
+            var groupedSchedules = results
+                .GroupBy(x => x.Veterinarian.Id)
+                .Select(g => new VetScheduleGroupViewModel
+                {
+                    Veterinarian = g.First().Veterinarian,
+                    Schedules = g.Select(x => x.Schedule).OrderBy(s => s.DayOfWeek).ToList(),
+                    DayCount = g.Count()
+                })
+                .ToList();
+
+            ViewBag.GroupedSchedules = groupedSchedules;
+
+            // Get all schedules for the model
+            var schedules = results.Select(x => x.Schedule).ToList();
 
             await PopulateVeterinarianDropDownList(veterinarianId);
 
             return View(schedules);
         }
-
-        // GET: VetSchedules/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-                return NotFound();
-
-            var schedule = await _context.VetSchedules
-                .Include(s => s.Veterinarian)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
-            if (schedule == null)
-                return NotFound();
-
-            return View(schedule);
-        }
-
         // GET: VetSchedules/Create
         public async Task<IActionResult> Create()
         {
             await PopulateVeterinarianDropDownList();
-            return View();
+            return View(new CreateVetScheduleViewModel());
         }
 
         // POST: VetSchedules/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(
-            [Bind("VeterinarianId,Date,StartTime,EndTime,IsActive")]
-            VetSchedule schedule)
+        public async Task<IActionResult> Create(CreateVetScheduleViewModel model)
         {
-            // Validate vet selected
-            if (schedule.VeterinarianId <= 0)
+            // Validate veterinarian selected
+            if (model.VeterinarianId <= 0)
             {
                 ModelState.AddModelError("VeterinarianId", "Please select a veterinarian.");
             }
 
-            // Validate times
-            ValidateScheduleTimes(schedule);
-
-            if (ModelState.IsValid)
+            // Validate at least 3 days selected
+            if (model.SelectedDays == null || model.SelectedDays.Count < 3)
             {
-                // Check overlap for same vet, same date
-                bool hasConflict = await HasScheduleConflict(
-                    schedule.VeterinarianId,
-                    schedule.Date.Value.Date,
-                    schedule.StartTime,
-                    schedule.EndTime,
-                    null);
-
-                if (hasConflict)
-                {
-                    ModelState.AddModelError(string.Empty,
-                        "This schedule overlaps with an existing schedule for this veterinarian.");
-                }
+                ModelState.AddModelError("SelectedDays", "Veterinarian must work at least 3 days per week.");
             }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Add(schedule);
+                    // Check if vet already has schedules
+                    var existingSchedules = await _context.VetSchedules
+                        .Where(s => s.VeterinarianId == model.VeterinarianId && s.IsActive)
+                        .ToListAsync();
+
+                    if (existingSchedules.Any())
+                    {
+                        ModelState.AddModelError(string.Empty,
+                            "This veterinarian already has a schedule. Please edit or delete the existing schedule first.");
+                        await PopulateVeterinarianDropDownList(model.VeterinarianId);
+                        return View(model);
+                    }
+
+                    // Create a schedule for each selected day
+                    foreach (var dayValue in model.SelectedDays)
+                    {
+                        var schedule = new VetSchedule
+                        {
+                            VeterinarianId = model.VeterinarianId,
+                            DayOfWeek = (DayOfWeek)dayValue,
+                            StartTime = WorkStartTime,  // 8:00 AM
+                            EndTime = WorkEndTime,      // 4:00 PM
+                            IsActive = true
+                        };
+
+                        _context.VetSchedules.Add(schedule);
+                    }
+
                     await _context.SaveChangesAsync();
 
-                    TempData["SuccessMessage"] = "Schedule created successfully.";
+                    TempData["SuccessMessage"] = $"Schedule created successfully for {model.SelectedDays.Count} days.";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
@@ -120,85 +137,160 @@ namespace AnimalCare.Controllers
                 }
             }
 
-            await PopulateVeterinarianDropDownList(schedule.VeterinarianId);
-            return View(schedule);
+            await PopulateVeterinarianDropDownList(model.VeterinarianId);
+            return View(model);
         }
 
-        // GET: VetSchedules/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        // GET: VetSchedules/EditAll/1 (veterinarianId)
+        public async Task<IActionResult> EditAll(int? veterinarianId)
         {
-            if (id == null)
+            if (veterinarianId == null)
                 return NotFound();
 
-            var schedule = await _context.VetSchedules.FindAsync(id);
-            if (schedule == null)
+            var veterinarian = await _context.Veterinarians.FindAsync(veterinarianId);
+            if (veterinarian == null)
                 return NotFound();
 
-            await PopulateVeterinarianDropDownList(schedule.VeterinarianId);
-            return View(schedule);
+            // Get all active schedules for this vet
+            var existingSchedules = await _context.VetSchedules
+                .Where(s => s.VeterinarianId == veterinarianId && s.IsActive)
+                .ToListAsync();
+
+            var model = new EditVetScheduleViewModel
+            {
+                VeterinarianId = veterinarianId.Value,
+                VeterinarianName = $"{veterinarian.FirstName} {veterinarian.LastName}",
+                SelectedDays = existingSchedules.Select(s => (int)s.DayOfWeek).ToList(),
+                OriginalDays = existingSchedules.Select(s => (int)s.DayOfWeek).ToList()
+            };
+
+            return View(model);
         }
 
-        // POST: VetSchedules/Edit/5
+        // POST: VetSchedules/EditAll
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id,
-            [Bind("Id,VeterinarianId,Date,StartTime,EndTime,IsActive")]
-            VetSchedule schedule)
+        public async Task<IActionResult> EditAll(EditVetScheduleViewModel model)
         {
-            if (id != schedule.Id)
-                return NotFound();
-
-            if (schedule.VeterinarianId <= 0)
+            // Validate at least 3 days selected
+            if (model.SelectedDays == null || model.SelectedDays.Count < 3)
             {
-                ModelState.AddModelError("VeterinarianId", "Please select a veterinarian.");
-            }
-
-            ValidateScheduleTimes(schedule);
-
-            if (ModelState.IsValid)
-            {
-                bool hasConflict = await HasScheduleConflict(
-                    schedule.VeterinarianId,
-                    schedule.Date.Value.Date,
-                    schedule.StartTime,
-                    schedule.EndTime,
-                    schedule.Id);
-
-                if (hasConflict)
-                {
-                    ModelState.AddModelError(string.Empty,
-                        "This schedule overlaps with another schedule for this veterinarian.");
-                }
+                ModelState.AddModelError("SelectedDays", "Veterinarian must work at least 3 days per week.");
             }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(schedule);
+                    // Get existing schedules
+                    var existingSchedules = await _context.VetSchedules
+                        .Where(s => s.VeterinarianId == model.VeterinarianId && s.IsActive)
+                        .ToListAsync();
+
+                    // Find days to ADD (in SelectedDays but not in OriginalDays)
+                    var daysToAdd = model.SelectedDays
+                        .Except(model.OriginalDays)
+                        .ToList();
+
+                    // Find days to REMOVE (in OriginalDays but not in SelectedDays)
+                    var daysToRemove = model.OriginalDays
+                        .Except(model.SelectedDays)
+                        .ToList();
+
+                    // Add new schedules for new days
+                    foreach (var dayValue in daysToAdd)
+                    {
+                        var schedule = new VetSchedule
+                        {
+                            VeterinarianId = model.VeterinarianId,
+                            DayOfWeek = (DayOfWeek)dayValue,
+                            StartTime = WorkStartTime,  // 8:00 AM
+                            EndTime = WorkEndTime,      // 4:00 PM
+                            IsActive = true
+                        };
+                        _context.VetSchedules.Add(schedule);
+                    }
+
+                    // Remove schedules for removed days
+                    foreach (var dayValue in daysToRemove)
+                    {
+                        var scheduleToRemove = existingSchedules
+                            .FirstOrDefault(s => (int)s.DayOfWeek == dayValue);
+
+                        if (scheduleToRemove != null)
+                        {
+                            _context.VetSchedules.Remove(scheduleToRemove);
+                        }
+                    }
+
                     await _context.SaveChangesAsync();
 
                     TempData["SuccessMessage"] = "Schedule updated successfully.";
                     return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException ex)
-                {
-                    if (!VetScheduleExists(schedule.Id))
-                        return NotFound();
-
-                    _logger.LogError(ex, "Concurrency error editing vet schedule {ScheduleId}", schedule.Id);
-                    TempData["ErrorMessage"] = "A concurrency error occurred while updating the schedule.";
-                }
                 catch (DbUpdateException ex)
                 {
-                    _logger.LogError(ex, "DB error editing vet schedule {ScheduleId}", schedule.Id);
-                    TempData["ErrorMessage"] = "An error occurred while saving the schedule.";
+                    _logger.LogError(ex, "Error updating vet schedule");
+                    TempData["ErrorMessage"] = "An error occurred while updating the schedule.";
                 }
             }
 
-            await PopulateVeterinarianDropDownList(schedule.VeterinarianId);
-            return View(schedule);
+            // If we get here, reload the veterinarian name
+            var vet = await _context.Veterinarians.FindAsync(model.VeterinarianId);
+            if (vet != null)
+            {
+                model.VeterinarianName = $"{vet.FirstName} {vet.LastName}";
+            }
+
+            return View(model);
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         // GET: VetSchedules/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -212,6 +304,13 @@ namespace AnimalCare.Controllers
 
             if (schedule == null)
                 return NotFound();
+
+            // Check if deleting this day would leave vet with less than 3 days
+            var vetScheduleCount = await _context.VetSchedules
+                .Where(s => s.VeterinarianId == schedule.VeterinarianId && s.IsActive)
+                .CountAsync();
+
+            ViewBag.VetScheduleCount = vetScheduleCount;
 
             return View(schedule);
         }
@@ -227,6 +326,17 @@ namespace AnimalCare.Controllers
 
             try
             {
+                // Check if this would leave vet with less than 3 days
+                var vetScheduleCount = await _context.VetSchedules
+                    .Where(s => s.VeterinarianId == schedule.VeterinarianId && s.IsActive && s.Id != id)
+                    .CountAsync();
+
+                if (vetScheduleCount < 3)
+                {
+                    TempData["ErrorMessage"] = "Cannot delete this schedule. Veterinarian must work at least 3 days per week.";
+                    return RedirectToAction(nameof(Index));
+                }
+
                 _context.VetSchedules.Remove(schedule);
                 await _context.SaveChangesAsync();
 
@@ -241,64 +351,48 @@ namespace AnimalCare.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Helper: validate business rules for time range + clinic hours
-        private void ValidateScheduleTimes(VetSchedule schedule)
+        // DELETE ALL schedules for a veterinarian
+        public async Task<IActionResult> DeleteAll(int? veterinarianId)
         {
-            // Start must be before End
-            if (schedule.StartTime >= schedule.EndTime)
-            {
-                ModelState.AddModelError("StartTime", "Start time must be before end time.");
-            }
+            if (veterinarianId == null)
+                return NotFound();
 
-            // Within clinic hours
-            if (schedule.StartTime < ClinicOpenTime || schedule.EndTime > ClinicCloseTime)
-            {
-                ModelState.AddModelError(string.Empty,
-                    $"Schedule must be within clinic hours ({ClinicOpenTime} - {ClinicCloseTime}).");
-            }
-        }
+            var veterinarian = await _context.Veterinarians.FindAsync(veterinarianId);
+            if (veterinarian == null)
+                return NotFound();
 
-        /// <summary>
-        /// Check for overlap with existing schedules for the same vet on the same date.
-        /// Overlap rule for schedules:
-        /// (Start1 < End2) AND (Start2 < End1)
-        /// </summary>
-        private async Task<bool> HasScheduleConflict(
-            int veterinarianId,
-            DateTime date,
-            TimeSpan startTime,
-            TimeSpan endTime,
-            int? excludeScheduleId = null)
-        {
-            var query = _context.VetSchedules
-                .Where(s => s.VeterinarianId == veterinarianId &&
-                            s.Date.Value.Date == date.Date);
-
-            if (excludeScheduleId.HasValue)
-            {
-                int idToExclude = excludeScheduleId.Value;
-                query = query.Where(s => s.Id != idToExclude);
-            }
-
-            var existingSchedules = await query
-                .Select(s => new
-                {
-                    s.StartTime,
-                    s.EndTime
-                })
+            var schedules = await _context.VetSchedules
+                .Where(s => s.VeterinarianId == veterinarianId && s.IsActive)
                 .ToListAsync();
 
-            foreach (var s in existingSchedules)
-            {
-                bool overlaps = startTime < s.EndTime && s.StartTime < endTime;
+            ViewBag.Veterinarian = veterinarian;
+            ViewBag.ScheduleCount = schedules.Count;
 
-                if (overlaps)
-                {
-                    return true;
-                }
+            return View(schedules);
+        }
+
+        [HttpPost, ActionName("DeleteAll")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAllConfirmed(int veterinarianId)
+        {
+            try
+            {
+                var schedules = await _context.VetSchedules
+                    .Where(s => s.VeterinarianId == veterinarianId && s.IsActive)
+                    .ToListAsync();
+
+                _context.VetSchedules.RemoveRange(schedules);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "All schedules deleted successfully.";
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Error deleting all schedules for vet {VetId}", veterinarianId);
+                TempData["ErrorMessage"] = "An error occurred while deleting the schedules.";
             }
 
-            return false;
+            return RedirectToAction(nameof(Index));
         }
 
         private async Task PopulateVeterinarianDropDownList(int? selectedVetId = null)

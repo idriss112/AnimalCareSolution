@@ -26,6 +26,7 @@ namespace AnimalCare.Controllers
             var vets = await _context.Veterinarians
                 .Include(v => v.VetSchedules)    // for schedule count, if needed in view
                 .Include(v => v.Appointments)    // for appointment count
+                .Include(v => v.VetSpecialties)  // ← ADD THIS LINE to load specialties
                 .OrderBy(v => v.LastName)
                 .ThenBy(v => v.FirstName)
                 .ToListAsync();
@@ -58,24 +59,48 @@ namespace AnimalCare.Controllers
         }
 
         // GET: Veterinarians/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View();
+            await PopulateSpecialtiesCheckboxList();
+            return View(new Veterinarian());
         }
 
         // POST: Veterinarians/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(
-            [Bind("FirstName,LastName,Email,PhoneNumber,SpecializationSummary,IsActive")]
-            Veterinarian vet)
+        public async Task<IActionResult> Create(Veterinarian vet, List<int>? SelectedSpecialtyIds)
         {
+            // Remove navigation properties from validation
+            ModelState.Remove("Appointments");
+            ModelState.Remove("VetSchedules");
+            ModelState.Remove("VetSpecialties");
+            ModelState.Remove("User");
+            ModelState.Remove("CreatedAt");
+
             if (ModelState.IsValid)
             {
                 try
                 {
+                    vet.CreatedAt = DateTime.UtcNow;
+
+                    // Add veterinarian first
                     _context.Add(vet);
                     await _context.SaveChangesAsync();
+
+                    // Now add the specialties if any selected
+                    if (SelectedSpecialtyIds != null && SelectedSpecialtyIds.Any())
+                    {
+                        var specialties = await _context.VetSpecialties
+                            .Where(s => SelectedSpecialtyIds.Contains(s.Id))
+                            .ToListAsync();
+
+                        foreach (var specialty in specialties)
+                        {
+                            vet.VetSpecialties.Add(specialty);
+                        }
+
+                        await _context.SaveChangesAsync();
+                    }
 
                     TempData["SuccessMessage"] = "Veterinarian created successfully.";
                     return RedirectToAction(nameof(Index));
@@ -87,8 +112,21 @@ namespace AnimalCare.Controllers
                 }
             }
 
+            await PopulateSpecialtiesCheckboxList(SelectedSpecialtyIds);
             return View(vet);
         }
+
+        // HELPER METHOD - Add this to your controller
+        private async Task PopulateSpecialtiesCheckboxList(List<int>? selectedIds = null)
+        {
+            var specialties = await _context.VetSpecialties
+                .OrderBy(s => s.Name)
+                .ToListAsync();
+
+            ViewBag.Specialties = specialties;
+            ViewBag.SelectedSpecialtyIds = selectedIds ?? new List<int>();
+        }
+
 
         // GET: Veterinarians/Edit/5
         public async Task<IActionResult> Edit(int? id)
@@ -96,9 +134,16 @@ namespace AnimalCare.Controllers
             if (id == null)
                 return NotFound();
 
-            var vet = await _context.Veterinarians.FindAsync(id);
+            var vet = await _context.Veterinarians
+                .Include(v => v.VetSpecialties)
+                .FirstOrDefaultAsync(v => v.Id == id);
+
             if (vet == null)
                 return NotFound();
+
+            // Pre-select current specialties
+            var selectedSpecialtyIds = vet.VetSpecialties.Select(s => s.Id).ToList();
+            await PopulateSpecialtiesCheckboxList(selectedSpecialtyIds);
 
             return View(vet);
         }
@@ -106,18 +151,53 @@ namespace AnimalCare.Controllers
         // POST: Veterinarians/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id,
-            [Bind("Id,FirstName,LastName,Email,PhoneNumber,SpecializationSummary,IsActive")]
-            Veterinarian vet)
+        public async Task<IActionResult> Edit(int id, Veterinarian vet, List<int>? SelectedSpecialtyIds)
         {
             if (id != vet.Id)
                 return NotFound();
+
+            // Remove navigation properties from validation
+            ModelState.Remove("Appointments");
+            ModelState.Remove("VetSchedules");
+            ModelState.Remove("VetSpecialties");
+            ModelState.Remove("User");
+            ModelState.Remove("CreatedAt");
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(vet);
+                    // Get existing vet with specialties
+                    var existingVet = await _context.Veterinarians
+                        .Include(v => v.VetSpecialties)
+                        .FirstOrDefaultAsync(v => v.Id == id);
+
+                    if (existingVet == null)
+                        return NotFound();
+
+                    // Update basic properties
+                    existingVet.FirstName = vet.FirstName;
+                    existingVet.LastName = vet.LastName;
+                    existingVet.Email = vet.Email;
+                    existingVet.PhoneNumber = vet.PhoneNumber;
+                    existingVet.SpecializationSummary = vet.SpecializationSummary;
+                    existingVet.IsActive = vet.IsActive;
+
+                    // Update specialties - clear and re-add
+                    existingVet.VetSpecialties.Clear();
+
+                    if (SelectedSpecialtyIds != null && SelectedSpecialtyIds.Any())
+                    {
+                        var specialties = await _context.VetSpecialties
+                            .Where(s => SelectedSpecialtyIds.Contains(s.Id))
+                            .ToListAsync();
+
+                        foreach (var specialty in specialties)
+                        {
+                            existingVet.VetSpecialties.Add(specialty);
+                        }
+                    }
+
                     await _context.SaveChangesAsync();
 
                     TempData["SuccessMessage"] = "Veterinarian updated successfully.";
@@ -125,21 +205,23 @@ namespace AnimalCare.Controllers
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {
-                    if (!VeterinarianExists(vet.Id))
+                    if (!VeterinarianExists(id))
                         return NotFound();
 
-                    _logger.LogError(ex, "Concurrency error editing veterinarian {VetId}", vet.Id);
+                    _logger.LogError(ex, "Concurrency error editing veterinarian {VetId}", id);
                     TempData["ErrorMessage"] = "A concurrency error occurred while updating the veterinarian.";
                 }
                 catch (DbUpdateException ex)
                 {
-                    _logger.LogError(ex, "DB error editing veterinarian {VetId}", vet.Id);
+                    _logger.LogError(ex, "DB error editing veterinarian {VetId}", id);
                     TempData["ErrorMessage"] = "An error occurred while saving the veterinarian.";
                 }
             }
 
+            await PopulateSpecialtiesCheckboxList(SelectedSpecialtyIds);
             return View(vet);
         }
+
 
         // GET: Veterinarians/Delete/5
         // We will WARN if vet has future appointments and recommend deactivation instead.

@@ -2,78 +2,156 @@
 
 @{
     ViewData["Title"] = "Edit Veterinarian";
+    var specialties = ViewBag.Specialties as List<AnimalCare.Models.VetSpecialty>;
+    var selectedIds = ViewBag.SelectedSpecialtyIds as List<int> ?? new List<int>();
 }
 
 <h2 class="mb-1">
-    <i class="bi bi-pencil-square text-warning"></i> Edit Veterinarian
+    <i class="bi bi-pencil-square text-primary"></i> Edit Veterinarian
 </h2>
-<p class="text-muted">Update veterinarian profile and status.</p>
+<p class="text-muted">Update veterinarian profile information.</p>
 <hr />
 
 <div class="row">
     <div class="col-lg-8">
         <div class="card shadow-sm">
             <div class="card-body">
-                <form asp-action="Edit" method="post" class="needs-validation" novalidate>
+                <form asp-action="Edit" method="post">
                     <input type="hidden" asp-for="Id" />
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label asp-for="FirstName" class="form-label">First Name</label>
-                            <input asp-for="FirstName" class="form-control" />
-                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                    <!-- Basic Information -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-primary text-white">
+                            <i class="bi bi-person-fill"></i> Basic Information
                         </div>
-                        <div class="col-md-6">
-                            <label asp-for="LastName" class="form-label">Last Name</label>
-                            <input asp-for="LastName" class="form-control" />
-                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label asp-for="FirstName" class="form-label"></label>
+                                    <input asp-for="FirstName" class="form-control" />
+                                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="LastName" class="form-label"></label>
+                                    <input asp-for="LastName" class="form-control" />
+                                    <span asp-validation-for="LastName" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label asp-for="Email" class="form-label"></label>
+                                    <input asp-for="Email" class="form-control" type="email" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="PhoneNumber" class="form-label"></label>
+                                    <input asp-for="PhoneNumber" class="form-control" />
+                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-check form-switch">
+                                <input asp-for="IsActive" class="form-check-input" />
+                                <label asp-for="IsActive" class="form-check-label">
+                                    Active Veterinarian
+                                </label>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label asp-for="Email" class="form-label">Email</label>
-                            <input asp-for="Email" class="form-control" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
+                    <!-- Specialties Selection -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-success text-white">
+                            <i class="bi bi-award-fill"></i> Specialties (Select all that apply)
                         </div>
-                        <div class="col-md-6">
-                            <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
-                            <input asp-for="PhoneNumber" class="form-control" />
-                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        <div class="card-body">
+                            @if (specialties != null && specialties.Any())
+                            {
+                                <div class="row">
+                                    @foreach (var specialty in specialties)
+                                    {
+                                        <div class="col-md-6 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input"
+                                                       type="checkbox"
+                                                       name="SelectedSpecialtyIds"
+                                                       value="@specialty.Id"
+                                                       id="specialty@(specialty.Id)"
+                                                       @(selectedIds.Contains(specialty.Id) ? "checked" : "")>
+                                                <label class="form-check-label" for="specialty@(specialty.Id)">
+                                                    <strong>@specialty.Name</strong>
+                                                    @if (!string.IsNullOrEmpty(specialty.Description))
+                                                    {
+                                                        <br />
+                                                        <small class="text-muted">@specialty.Description</small>
+                                                    }
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-warning mb-0">
+                                    <i class="bi bi-exclamation-triangle"></i> No specialties available.
+                                </div>
+                            }
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="SpecializationSummary" class="form-label">
-                            Specialization Summary
-                        </label>
-                        <textarea asp-for="SpecializationSummary" class="form-control" rows="3"></textarea>
-                        <span asp-validation-for="SpecializationSummary" class="text-danger"></span>
+                    <!-- Specialization Summary -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-info text-white">
+                            <i class="bi bi-text-paragraph"></i> Additional Information
+                        </div>
+                        <div class="card-body">
+                            <label asp-for="SpecializationSummary" class="form-label"></label>
+                            <textarea asp-for="SpecializationSummary" class="form-control" rows="3"
+                                      placeholder="E.g., 10 years experience with exotic animals..."></textarea>
+                            <span asp-validation-for="SpecializationSummary" class="text-danger"></span>
+                            <small class="text-muted">Optional: Additional details about experience.</small>
+                        </div>
                     </div>
 
-                    <div class="form-check form-switch mb-3">
-                        <input asp-for="IsActive" class="form-check-input" />
-                        <label asp-for="IsActive" class="form-check-label">
-                            Active Veterinarian
-                        </label>
-                    </div>
-
-                    <div class="mb-3">
-                        <small class="text-muted">
-                            Created at: @Model.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
-                        </small>
-                    </div>
-
+                    <!-- Action Buttons -->
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-save"></i> Save Changes
+                            <i class="bi bi-check-circle"></i> Update Veterinarian
                         </button>
                         <a asp-action="Index" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left-circle"></i> Back to List
+                            <i class="bi bi-x-circle"></i> Cancel
                         </a>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Helper Card -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-question-circle"></i> Help
+            </div>
+            <div class="card-body">
+                <h6 class="fw-bold">Editing Veterinarian:</h6>
+                <ol class="mb-0">
+                    <li class="mb-2">Update information as needed</li>
+                    <li class="mb-2">Check/uncheck specialties</li>
+                    <li class="mb-2">Modify summary</li>
+                    <li class="mb-0">Click "Update"</li>
+                </ol>
+
+                <hr>
+
+                <h6 class="fw-bold">Note:</h6>
+                <ul class="mb-0">
+                    <li class="mb-2">Multiple specialties allowed</li>
+                    <li class="mb-0">Uncheck all to remove specialties</li>
+                </ul>
             </div>
         </div>
     </div>

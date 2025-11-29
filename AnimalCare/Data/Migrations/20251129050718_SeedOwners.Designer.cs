@@ -4,6 +4,7 @@ using AnimalCare.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AnimalCare.Data.Migrations
 {
     [DbContext(typeof(AnimalCareDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251129050718_SeedOwners")]
+    partial class SeedOwners
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -69,99 +72,6 @@ namespace AnimalCare.Data.Migrations
                     b.HasIndex("OwnerId");
 
                     b.ToTable("Animals");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Breed = "Labrador Retriever",
-                            CreatedAt = new DateTime(2024, 1, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DateOfBirth = new DateTime(2019, 5, 12, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            ImportantNotes = "Very friendly, good with children. Up to date on vaccines.",
-                            Name = "Bella",
-                            OwnerId = 1,
-                            Sex = "Female",
-                            Species = "Dog",
-                            Weight = 28.5m
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Breed = "German Shepherd",
-                            CreatedAt = new DateTime(2024, 1, 11, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DateOfBirth = new DateTime(2018, 11, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            ImportantNotes = "Needs regular exercise. Slight anxiety with strangers.",
-                            Name = "Max",
-                            OwnerId = 1,
-                            Sex = "Male",
-                            Species = "Dog",
-                            Weight = 32.2m
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Breed = "Siamese",
-                            CreatedAt = new DateTime(2024, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DateOfBirth = new DateTime(2020, 2, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            ImportantNotes = "Indoor-only cat. Sensitive stomach, special food required.",
-                            Name = "Luna",
-                            OwnerId = 2,
-                            Sex = "Female",
-                            Species = "Cat",
-                            Weight = 4.3m
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Breed = "British Shorthair",
-                            CreatedAt = new DateTime(2024, 1, 13, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DateOfBirth = new DateTime(2021, 7, 8, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            ImportantNotes = "Calm temperament. Slight overweight, on diet plan.",
-                            Name = "Milo",
-                            OwnerId = 3,
-                            Sex = "Male",
-                            Species = "Cat",
-                            Weight = 5.1m
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Breed = "Bulldog",
-                            CreatedAt = new DateTime(2024, 1, 14, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DateOfBirth = new DateTime(2017, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            ImportantNotes = "Brachycephalic, monitor breathing during exercise.",
-                            Name = "Rocky",
-                            OwnerId = 3,
-                            Sex = "Male",
-                            Species = "Dog",
-                            Weight = 24.8m
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Breed = "Cockatiel",
-                            CreatedAt = new DateTime(2024, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DateOfBirth = new DateTime(2022, 4, 30, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            ImportantNotes = "Very vocal in the morning. Needs regular wing checks.",
-                            Name = "Coco",
-                            OwnerId = 4,
-                            Sex = "Female",
-                            Species = "Bird",
-                            Weight = 0.09m
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Breed = "Golden Retriever",
-                            CreatedAt = new DateTime(2024, 1, 16, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DateOfBirth = new DateTime(2020, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            ImportantNotes = "Allergic to chicken-based food. Use hypoallergenic treats.",
-                            Name = "Nala",
-                            OwnerId = 5,
-                            Sex = "Female",
-                            Species = "Dog",
-                            Weight = 26.7m
-                        });
                 });
 
             modelBuilder.Entity("AnimalCare.Models.ApplicationUser", b =>
@@ -259,8 +169,8 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = "user-admin-id",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "4854116e-d644-4216-955b-4f56b9d1006d",
-                            CreatedAt = new DateTime(2025, 11, 29, 18, 0, 45, 937, DateTimeKind.Utc).AddTicks(9716),
+                            ConcurrencyStamp = "7cdcf0c5-d156-4fb5-a872-eeead8a29862",
+                            CreatedAt = new DateTime(2025, 11, 29, 5, 7, 17, 101, DateTimeKind.Utc).AddTicks(5833),
                             Email = "admin@animalcare.com",
                             EmailConfirmed = true,
                             FirstName = "System",
@@ -269,9 +179,9 @@ namespace AnimalCare.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@ANIMALCARE.COM",
                             NormalizedUserName = "ADMIN@ANIMALCARE.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEAeLqa4jRXH0BEN8kGEZR/BM5fnFX0oRsbJFpAmlJtBXmx+paeKzoG3nLYIuIAu8zg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEBGTQMAqfroGbnkmCyg62aSDLynN4xLFVKGAvAoRg7VqIbZdkN6m7OYr8+zIzgY0IQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "22a331d8-4e68-4c6d-9e33-3391ea7c756a",
+                            SecurityStamp = "3dca77fe-3a20-4e30-abfb-728e0cc1b557",
                             TwoFactorEnabled = false,
                             UserName = "admin@animalcare.com"
                         });
@@ -361,7 +271,7 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = 1,
                             Address = "215 Rue Sainte-Catherine Ouest, Montréal, QC",
-                            CreatedAt = new DateTime(2025, 11, 29, 18, 0, 45, 996, DateTimeKind.Utc).AddTicks(4520),
+                            CreatedAt = new DateTime(2025, 11, 29, 5, 7, 17, 161, DateTimeKind.Utc).AddTicks(3591),
                             Email = "sarah.tremblay@example.com",
                             FirstName = "Sarah",
                             LastName = "Tremblay",
@@ -371,7 +281,7 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = 2,
                             Address = "88 Av. du Mont-Royal Est, Montréal, QC",
-                            CreatedAt = new DateTime(2025, 11, 29, 18, 0, 45, 996, DateTimeKind.Utc).AddTicks(4524),
+                            CreatedAt = new DateTime(2025, 11, 29, 5, 7, 17, 161, DateTimeKind.Utc).AddTicks(3596),
                             Email = "julien.moreau@example.com",
                             FirstName = "Julien",
                             LastName = "Moreau",
@@ -381,7 +291,7 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = 3,
                             Address = "4020 Boulevard Décarie, Montréal, QC",
-                            CreatedAt = new DateTime(2025, 11, 29, 18, 0, 45, 996, DateTimeKind.Utc).AddTicks(4525),
+                            CreatedAt = new DateTime(2025, 11, 29, 5, 7, 17, 161, DateTimeKind.Utc).AddTicks(3601),
                             Email = "amira.haddad@example.com",
                             FirstName = "Amira",
                             LastName = "El-Haddad",
@@ -391,7 +301,7 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = 4,
                             Address = "1200 Rue Sherbrooke Ouest, Montréal, QC",
-                            CreatedAt = new DateTime(2025, 11, 29, 18, 0, 45, 996, DateTimeKind.Utc).AddTicks(4527),
+                            CreatedAt = new DateTime(2025, 11, 29, 5, 7, 17, 161, DateTimeKind.Utc).AddTicks(3603),
                             Email = "kevin.ouellet@example.com",
                             FirstName = "Kevin",
                             LastName = "Ouellet",
@@ -401,7 +311,7 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = 5,
                             Address = "59 Rue Jean-Talon Est, Montréal, QC",
-                            CreatedAt = new DateTime(2025, 11, 29, 18, 0, 45, 996, DateTimeKind.Utc).AddTicks(4528),
+                            CreatedAt = new DateTime(2025, 11, 29, 5, 7, 17, 161, DateTimeKind.Utc).AddTicks(3606),
                             Email = "layla.benali@example.com",
                             FirstName = "Layla",
                             LastName = "Benali",

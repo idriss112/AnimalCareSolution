@@ -223,6 +223,149 @@ namespace AnimalCare.Data
                     RoleId = adminRoleId
                 }
             );
+
+            modelBuilder.Entity<Owner>().HasData(
+                        new Owner
+                        {
+                            Id = 1,
+                            FirstName = "Sarah",
+                            LastName = "Tremblay",
+                            PhoneNumber = "514-987-2234",
+                            Email = "sarah.tremblay@example.com",
+                            Address = "215 Rue Sainte-Catherine Ouest, Montréal, QC"
+                        },
+                        new Owner
+                        {
+                            Id = 2,
+                            FirstName = "Julien",
+                            LastName = "Moreau",
+                            PhoneNumber = "438-771-9023",
+                            Email = "julien.moreau@example.com",
+                            Address = "88 Av. du Mont-Royal Est, Montréal, QC"
+                        },
+                        new Owner
+                        {
+                            Id = 3,
+                            FirstName = "Amira",
+                            LastName = "El-Haddad",
+                            PhoneNumber = "514-622-3381",
+                            Email = "amira.haddad@example.com",
+                            Address = "4020 Boulevard Décarie, Montréal, QC"
+                        },
+                        new Owner
+                        {
+                            Id = 4,
+                            FirstName = "Kevin",
+                            LastName = "Ouellet",
+                            PhoneNumber = "581-300-7709",
+                            Email = "kevin.ouellet@example.com",
+                            Address = "1200 Rue Sherbrooke Ouest, Montréal, QC"
+                        },
+                        new Owner
+                        {
+                            Id = 5,
+                            FirstName = "Layla",
+                            LastName = "Benali",
+                            PhoneNumber = "438-245-1940",
+                            Email = "layla.benali@example.com",
+                            Address = "59 Rue Jean-Talon Est, Montréal, QC"
+                        }
+                    );
+
+            modelBuilder.Entity<Animal>().HasData(
+        new Animal
+        {
+            Id = 1,
+            Name = "Bella",
+            Species = "Dog",
+            Breed = "Labrador Retriever",
+            DateOfBirth = new DateTime(2019, 5, 12),
+            Sex = "Female",
+            Weight = 28.5m,
+            ImportantNotes = "Very friendly, good with children. Up to date on vaccines.",
+            OwnerId = 1,
+            CreatedAt = new DateTime(2024, 1, 10, 0, 0, 0, DateTimeKind.Utc)
+        },
+        new Animal
+        {
+            Id = 2,
+            Name = "Max",
+            Species = "Dog",
+            Breed = "German Shepherd",
+            DateOfBirth = new DateTime(2018, 11, 3),
+            Sex = "Male",
+            Weight = 32.2m,
+            ImportantNotes = "Needs regular exercise. Slight anxiety with strangers.",
+            OwnerId = 1,
+            CreatedAt = new DateTime(2024, 1, 11, 0, 0, 0, DateTimeKind.Utc)
+        },
+        new Animal
+        {
+            Id = 3,
+            Name = "Luna",
+            Species = "Cat",
+            Breed = "Siamese",
+            DateOfBirth = new DateTime(2020, 2, 20),
+            Sex = "Female",
+            Weight = 4.3m,
+            ImportantNotes = "Indoor-only cat. Sensitive stomach, special food required.",
+            OwnerId = 2,
+            CreatedAt = new DateTime(2024, 1, 12, 0, 0, 0, DateTimeKind.Utc)
+        },
+        new Animal
+        {
+            Id = 4,
+            Name = "Milo",
+            Species = "Cat",
+            Breed = "British Shorthair",
+            DateOfBirth = new DateTime(2021, 7, 8),
+            Sex = "Male",
+            Weight = 5.1m,
+            ImportantNotes = "Calm temperament. Slight overweight, on diet plan.",
+            OwnerId = 3,
+            CreatedAt = new DateTime(2024, 1, 13, 0, 0, 0, DateTimeKind.Utc)
+        },
+        new Animal
+        {
+            Id = 5,
+            Name = "Rocky",
+            Species = "Dog",
+            Breed = "Bulldog",
+            DateOfBirth = new DateTime(2017, 9, 15),
+            Sex = "Male",
+            Weight = 24.8m,
+            ImportantNotes = "Brachycephalic, monitor breathing during exercise.",
+            OwnerId = 3,
+            CreatedAt = new DateTime(2024, 1, 14, 0, 0, 0, DateTimeKind.Utc)
+        },
+        new Animal
+        {
+            Id = 6,
+            Name = "Coco",
+            Species = "Bird",
+            Breed = "Cockatiel",
+            DateOfBirth = new DateTime(2022, 4, 30),
+            Sex = "Female",
+            Weight = 0.09m,
+            ImportantNotes = "Very vocal in the morning. Needs regular wing checks.",
+            OwnerId = 4,
+            CreatedAt = new DateTime(2024, 1, 15, 0, 0, 0, DateTimeKind.Utc)
+        },
+        new Animal
+        {
+            Id = 7,
+            Name = "Nala",
+            Species = "Dog",
+            Breed = "Golden Retriever",
+            DateOfBirth = new DateTime(2020, 6, 1),
+            Sex = "Female",
+            Weight = 26.7m,
+            ImportantNotes = "Allergic to chicken-based food. Use hypoallergenic treats.",
+            OwnerId = 5,
+            CreatedAt = new DateTime(2024, 1, 16, 0, 0, 0, DateTimeKind.Utc)
+        }
+    );
+
         }
     }
 }
