@@ -1,0 +1,140 @@
+﻿@model IEnumerable<AnimalCare.Models.VetSchedule>
+
+@{
+    ViewData["Title"] = "My Schedule";
+    var veterinarianName = ViewBag.VeterinarianName as string;
+    var specialties = ViewBag.Specialties as List<string>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">
+            <i class="bi bi-calendar-week text-success"></i> My Weekly Schedule
+        </h2>
+        <p class="text-muted mb-0">
+            @veterinarianName - View your working days and hours
+        </p>
+    </div>
+    <div>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Home
+        </a>
+    </div>
+</div>
+
+<!-- Veterinarian Info Card -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-info text-white">
+        <i class="bi bi-person-badge"></i> My Information
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-2"><strong>Name:</strong> @veterinarianName</p>
+            </div>
+            <div class="col-md-6">
+                <p class="mb-2">
+                    <strong>Specialties:</strong>
+                    @if (specialties != null && specialties.Any())
+                    {
+                        @string.Join(", ", specialties)
+                    }
+                    else
+                    {
+                        <span class="text-muted">No specialties assigned</span>
+                    }
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Card -->
+<div class="card shadow-sm">
+    <div class="card-header bg-success text-white">
+        <i class="bi bi-calendar-check"></i> Weekly Schedule
+    </div>
+    <div class="card-body">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th><i class="bi bi-calendar-day"></i> Day of Week</th>
+                            <th><i class="bi bi-clock"></i> Working Hours</th>
+                            <th><i class="bi bi-hourglass-split"></i> Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var schedule in Model.OrderBy(s => s.DayOfWeek))
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@schedule.DayOfWeek.ToString()</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">
+                                        <i class="bi bi-clock"></i> 8:00 AM - 4:00 PM
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-muted">8 hours</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="alert alert-info mt-3 mb-0">
+                <i class="bi bi-info-circle"></i>
+                <strong>Note:</strong> You are scheduled to work on <strong>@Model.Count()</strong> day(s) per week.
+                All working hours are 8:00 AM to 4:00 PM.
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>No schedule found.</strong> You don't have any working days assigned yet.
+                Please contact the administrator to set up your schedule.
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Working Days Summary -->
+@if (Model != null && Model.Any())
+{
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-light">
+            <i class="bi bi-calendar3"></i> Quick Overview
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <div class="p-3">
+                        <i class="bi bi-calendar-check display-4 text-success"></i>
+                        <h4 class="mt-2">@Model.Count()</h4>
+                        <p class="text-muted mb-0">Working Days</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3">
+                        <i class="bi bi-clock display-4 text-primary"></i>
+                        <h4 class="mt-2">@(Model.Count() * 8)</h4>
+                        <p class="text-muted mb-0">Hours per Week</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3">
+                        <i class="bi bi-hourglass-split display-4 text-info"></i>
+                        <h4 class="mt-2">8:00 AM - 4:00 PM</h4>
+                        <p class="text-muted mb-0">Daily Hours</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

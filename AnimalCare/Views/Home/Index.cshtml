@@ -91,13 +91,14 @@
                 </div>
             </div>
 
+            <!-- ✅ CHANGED: Receptionists instead of Appointments Today -->
             <div class="col-md-3">
                 <div class="card shadow stat-card bg-warning text-dark">
                     <div class="card-body text-center">
-                        <i class="bi bi-calendar-event display-6"></i>
-                        <h5 class="mt-2">Appointments Today</h5>
-                        <h2>@ViewBag.AppointmentsToday</h2>
-                        <a asp-controller="Appointments" asp-action="Index" class="text-dark">View schedule →</a>
+                        <i class="bi bi-person-workspace display-6"></i>
+                        <h5 class="mt-2">Receptionists</h5>
+                        <h2>@ViewBag.TotalReceptionists</h2>
+                        <a asp-controller="Receptionists" asp-action="Index" class="text-dark">View all →</a>
                     </div>
                 </div>
             </div>
@@ -118,6 +119,10 @@
                 </a>
                 <a asp-controller="Veterinarians" asp-action="Create" class="btn btn-info me-2">
                     <i class="bi bi-person-badge"></i> Add Vet
+                </a>
+                <!-- ✅ ADDED: Add Receptionist button -->
+                <a asp-controller="Receptionists" asp-action="Create" class="btn btn-warning text-dark me-2">
+                    <i class="bi bi-person-plus"></i> Add Receptionist
                 </a>
                 <a asp-controller="Appointments" asp-action="Create" class="btn btn-warning text-dark me-2">
                     <i class="bi bi-calendar-plus"></i> Book Appointment

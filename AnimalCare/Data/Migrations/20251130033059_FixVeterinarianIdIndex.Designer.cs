@@ -4,6 +4,7 @@ using AnimalCare.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AnimalCare.Data.Migrations
 {
     [DbContext(typeof(AnimalCareDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251130033059_FixVeterinarianIdIndex")]
+    partial class FixVeterinarianIdIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -222,9 +225,6 @@ namespace AnimalCare.Data.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("ReceptionistId")
-                        .HasColumnType("int");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -251,10 +251,6 @@ namespace AnimalCare.Data.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.HasIndex("ReceptionistId")
-                        .IsUnique()
-                        .HasFilter("[ReceptionistId] IS NOT NULL");
-
                     b.HasIndex("VeterinarianId")
                         .IsUnique()
                         .HasFilter("[VeterinarianId] IS NOT NULL");
@@ -266,8 +262,8 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = "user-admin-id",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "0436b4b8-117a-4654-91c1-94b4a83829b9",
-                            CreatedAt = new DateTime(2025, 11, 30, 17, 34, 5, 292, DateTimeKind.Utc).AddTicks(6055),
+                            ConcurrencyStamp = "cc31d6b0-6dad-4d0a-95e9-0e28605924c1",
+                            CreatedAt = new DateTime(2025, 11, 30, 3, 30, 58, 652, DateTimeKind.Utc).AddTicks(3107),
                             Email = "admin@animalcare.com",
                             EmailConfirmed = true,
                             FirstName = "System",
@@ -276,9 +272,9 @@ namespace AnimalCare.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@ANIMALCARE.COM",
                             NormalizedUserName = "ADMIN@ANIMALCARE.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEGb+CRYEvJHNOCF2brANqyMZJU5/+A+40xhAReDH84vEQMQtrKxHhXT6IpryGMhZYA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEFwYmpJ1V6NPXm8CIam0Wk9AwKxDLpMWMBXU1QeI90HBSb7OEwIxYLZVq2HpOQzPfQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "4787ff16-fbc3-4140-83df-1a27f81a6b86",
+                            SecurityStamp = "5094b544-e034-4a61-9a91-5f85b9c70555",
                             TwoFactorEnabled = false,
                             UserName = "admin@animalcare.com"
                         });
@@ -368,7 +364,7 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = 1,
                             Address = "215 Rue Sainte-Catherine Ouest, Montréal, QC",
-                            CreatedAt = new DateTime(2025, 11, 30, 17, 34, 5, 348, DateTimeKind.Utc).AddTicks(8561),
+                            CreatedAt = new DateTime(2025, 11, 30, 3, 30, 58, 720, DateTimeKind.Utc).AddTicks(2166),
                             Email = "sarah.tremblay@example.com",
                             FirstName = "Sarah",
                             LastName = "Tremblay",
@@ -378,7 +374,7 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = 2,
                             Address = "88 Av. du Mont-Royal Est, Montréal, QC",
-                            CreatedAt = new DateTime(2025, 11, 30, 17, 34, 5, 348, DateTimeKind.Utc).AddTicks(8569),
+                            CreatedAt = new DateTime(2025, 11, 30, 3, 30, 58, 720, DateTimeKind.Utc).AddTicks(2173),
                             Email = "julien.moreau@example.com",
                             FirstName = "Julien",
                             LastName = "Moreau",
@@ -388,7 +384,7 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = 3,
                             Address = "4020 Boulevard Décarie, Montréal, QC",
-                            CreatedAt = new DateTime(2025, 11, 30, 17, 34, 5, 348, DateTimeKind.Utc).AddTicks(8570),
+                            CreatedAt = new DateTime(2025, 11, 30, 3, 30, 58, 720, DateTimeKind.Utc).AddTicks(2174),
                             Email = "amira.haddad@example.com",
                             FirstName = "Amira",
                             LastName = "El-Haddad",
@@ -398,7 +394,7 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = 4,
                             Address = "1200 Rue Sherbrooke Ouest, Montréal, QC",
-                            CreatedAt = new DateTime(2025, 11, 30, 17, 34, 5, 348, DateTimeKind.Utc).AddTicks(8571),
+                            CreatedAt = new DateTime(2025, 11, 30, 3, 30, 58, 720, DateTimeKind.Utc).AddTicks(2175),
                             Email = "kevin.ouellet@example.com",
                             FirstName = "Kevin",
                             LastName = "Ouellet",
@@ -408,49 +404,12 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = 5,
                             Address = "59 Rue Jean-Talon Est, Montréal, QC",
-                            CreatedAt = new DateTime(2025, 11, 30, 17, 34, 5, 348, DateTimeKind.Utc).AddTicks(8572),
+                            CreatedAt = new DateTime(2025, 11, 30, 3, 30, 58, 720, DateTimeKind.Utc).AddTicks(2176),
                             Email = "layla.benali@example.com",
                             FirstName = "Layla",
                             LastName = "Benali",
                             PhoneNumber = "438-245-1940"
                         });
-                });
-
-            modelBuilder.Entity("AnimalCare.Models.Receptionist", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Receptionists");
                 });
 
             modelBuilder.Entity("AnimalCare.Models.VetSchedule", b =>
@@ -758,17 +717,10 @@ namespace AnimalCare.Data.Migrations
 
             modelBuilder.Entity("AnimalCare.Models.ApplicationUser", b =>
                 {
-                    b.HasOne("AnimalCare.Models.Receptionist", "Receptionist")
-                        .WithOne("User")
-                        .HasForeignKey("AnimalCare.Models.ApplicationUser", "ReceptionistId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("AnimalCare.Models.Veterinarian", "Veterinarian")
                         .WithOne("User")
                         .HasForeignKey("AnimalCare.Models.ApplicationUser", "VeterinarianId")
                         .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Receptionist");
 
                     b.Navigation("Veterinarian");
                 });
@@ -877,11 +829,6 @@ namespace AnimalCare.Data.Migrations
             modelBuilder.Entity("AnimalCare.Models.Owner", b =>
                 {
                     b.Navigation("Animals");
-                });
-
-            modelBuilder.Entity("AnimalCare.Models.Receptionist", b =>
-                {
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("AnimalCare.Models.Veterinarian", b =>

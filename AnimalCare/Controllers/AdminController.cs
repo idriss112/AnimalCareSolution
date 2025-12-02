@@ -26,16 +26,12 @@ namespace AnimalCare.Controllers
         // Simple dashboard page
         public async Task<IActionResult> Dashboard()
         {
-            // Quick overview – count of entities
-            var totalAppointments = await _context.Appointments.CountAsync();
-            var totalAnimals = await _context.Animals.CountAsync();
-            var totalOwners = await _context.Owners.CountAsync();
-            var totalVets = await _context.Veterinarians.CountAsync();
-
-            ViewBag.TotalAppointments = totalAppointments;
-            ViewBag.TotalAnimals = totalAnimals;
-            ViewBag.TotalOwners = totalOwners;
-            ViewBag.TotalVets = totalVets;
+            // Get counts for dashboard
+            ViewBag.OwnersCount = await _context.Owners.CountAsync();
+            ViewBag.AnimalsCount = await _context.Animals.CountAsync();
+            ViewBag.VeterinariansCount = await _context.Veterinarians.CountAsync();
+            ViewBag.ReceptionistsCount = await _context.Receptionists.CountAsync(); // ← ADD THIS LINE
+            ViewBag.AppointmentsCount = await _context.Appointments.CountAsync();
 
             return View();
         }
@@ -51,12 +47,18 @@ namespace AnimalCare.Controllers
             var startDate = new DateTime(reportYear, reportMonth, 1);
             var endDate = startDate.AddMonths(1); // exclusive upper bound
 
+            _logger.LogInformation("Monthly Report: Filtering appointments from {StartDate} to {EndDate}",
+                startDate, endDate);
+
             // Load appointments in this time range
             var appointments = await _context.Appointments
                 .Include(a => a.Veterinarian)
                 .Where(a => a.AppointmentDateTime >= startDate &&
                             a.AppointmentDateTime < endDate)
                 .ToListAsync();
+
+            _logger.LogInformation("Found {Count} appointments for {Month}/{Year}",
+                appointments.Count, reportMonth, reportYear);
 
             var report = new MonthlyReportViewModel
             {
@@ -72,15 +74,18 @@ namespace AnimalCare.Controllers
             // Group by veterinarian to compute per-vet stats
             report.AppointmentsByVet = appointments
                 .Where(a => a.Veterinarian != null)
-                .GroupBy(a => a.Veterinarian)
+                .GroupBy(a => a.Veterinarian!.Id)
                 .Select(g => new VetAppointmentStats
                 {
-                    VeterinarianName = $"{g.Key.FirstName} {g.Key.LastName}",
+                    VeterinarianName = $"{g.First().Veterinarian!.FirstName} {g.First().Veterinarian!.LastName}",
                     AppointmentCount = g.Count(),
                     CompletedCount = g.Count(a => a.Status == AppointmentStatus.Completed)
                 })
                 .OrderByDescending(v => v.AppointmentCount)
                 .ToList();
+
+            _logger.LogInformation("Report generated with {VetCount} veterinarians",
+                report.AppointmentsByVet.Count);
 
             return View(report);
         }

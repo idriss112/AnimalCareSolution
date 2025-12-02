@@ -4,6 +4,7 @@ using AnimalCare.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AnimalCare.Data.Migrations
 {
     [DbContext(typeof(AnimalCareDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251130044406_recep")]
+    partial class recep
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -266,8 +269,8 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = "user-admin-id",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "0436b4b8-117a-4654-91c1-94b4a83829b9",
-                            CreatedAt = new DateTime(2025, 11, 30, 17, 34, 5, 292, DateTimeKind.Utc).AddTicks(6055),
+                            ConcurrencyStamp = "c6170938-3b8a-4d60-b83e-67f116e4585a",
+                            CreatedAt = new DateTime(2025, 11, 30, 4, 44, 5, 132, DateTimeKind.Utc).AddTicks(3038),
                             Email = "admin@animalcare.com",
                             EmailConfirmed = true,
                             FirstName = "System",
@@ -276,9 +279,9 @@ namespace AnimalCare.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@ANIMALCARE.COM",
                             NormalizedUserName = "ADMIN@ANIMALCARE.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEGb+CRYEvJHNOCF2brANqyMZJU5/+A+40xhAReDH84vEQMQtrKxHhXT6IpryGMhZYA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEORDnVd9wjd02kSxQ7ypvGtho11Waebz0OF4beyZrtvxu3INWcAjJboIFd7YRrGdw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "4787ff16-fbc3-4140-83df-1a27f81a6b86",
+                            SecurityStamp = "72e807ca-9ebc-49c8-88d0-f5d25ddc73b7",
                             TwoFactorEnabled = false,
                             UserName = "admin@animalcare.com"
                         });
@@ -368,7 +371,7 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = 1,
                             Address = "215 Rue Sainte-Catherine Ouest, Montréal, QC",
-                            CreatedAt = new DateTime(2025, 11, 30, 17, 34, 5, 348, DateTimeKind.Utc).AddTicks(8561),
+                            CreatedAt = new DateTime(2025, 11, 30, 4, 44, 5, 192, DateTimeKind.Utc).AddTicks(4041),
                             Email = "sarah.tremblay@example.com",
                             FirstName = "Sarah",
                             LastName = "Tremblay",
@@ -378,7 +381,7 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = 2,
                             Address = "88 Av. du Mont-Royal Est, Montréal, QC",
-                            CreatedAt = new DateTime(2025, 11, 30, 17, 34, 5, 348, DateTimeKind.Utc).AddTicks(8569),
+                            CreatedAt = new DateTime(2025, 11, 30, 4, 44, 5, 192, DateTimeKind.Utc).AddTicks(4048),
                             Email = "julien.moreau@example.com",
                             FirstName = "Julien",
                             LastName = "Moreau",
@@ -388,7 +391,7 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = 3,
                             Address = "4020 Boulevard Décarie, Montréal, QC",
-                            CreatedAt = new DateTime(2025, 11, 30, 17, 34, 5, 348, DateTimeKind.Utc).AddTicks(8570),
+                            CreatedAt = new DateTime(2025, 11, 30, 4, 44, 5, 192, DateTimeKind.Utc).AddTicks(4049),
                             Email = "amira.haddad@example.com",
                             FirstName = "Amira",
                             LastName = "El-Haddad",
@@ -398,7 +401,7 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = 4,
                             Address = "1200 Rue Sherbrooke Ouest, Montréal, QC",
-                            CreatedAt = new DateTime(2025, 11, 30, 17, 34, 5, 348, DateTimeKind.Utc).AddTicks(8571),
+                            CreatedAt = new DateTime(2025, 11, 30, 4, 44, 5, 192, DateTimeKind.Utc).AddTicks(4150),
                             Email = "kevin.ouellet@example.com",
                             FirstName = "Kevin",
                             LastName = "Ouellet",
@@ -408,7 +411,7 @@ namespace AnimalCare.Data.Migrations
                         {
                             Id = 5,
                             Address = "59 Rue Jean-Talon Est, Montréal, QC",
-                            CreatedAt = new DateTime(2025, 11, 30, 17, 34, 5, 348, DateTimeKind.Utc).AddTicks(8572),
+                            CreatedAt = new DateTime(2025, 11, 30, 4, 44, 5, 192, DateTimeKind.Utc).AddTicks(4151),
                             Email = "layla.benali@example.com",
                             FirstName = "Layla",
                             LastName = "Benali",

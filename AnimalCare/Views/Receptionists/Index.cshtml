@@ -1,0 +1,111 @@
+﻿@model IEnumerable<AnimalCare.Models.Receptionist>
+
+@{
+    ViewData["Title"] = "Receptionists";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="mb-0">
+            <i class="bi bi-person-workspace text-primary"></i> Receptionists
+        </h2>
+        <p class="text-muted mb-0">Manage clinic receptionists and their status.</p>
+    </div>
+    <div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-person-plus-fill"></i> Add Receptionist
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th><i class="bi bi-person-badge"></i> Name</th>
+                    <th><i class="bi bi-envelope-at"></i> Email</th>
+                    <th><i class="bi bi-telephone"></i> Phone</th>
+                    <th><i class="bi bi-toggle-on"></i> Status</th>
+                    <th><i class="bi bi-clock-history"></i> Created</th>
+                    <th class="text-end"><i class="bi bi-gear"></i> Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var receptionist in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@receptionist.FirstName @receptionist.LastName</strong>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(receptionist.Email))
+                                {
+                                    <a href="mailto:@receptionist.Email">@receptionist.Email</a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">N/A</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(receptionist.PhoneNumber))
+                                {
+                                    <a href="tel:@receptionist.PhoneNumber">@receptionist.PhoneNumber</a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">N/A</span>
+                                }
+                            </td>
+                            <td>
+                                @if (receptionist.IsActive)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle"></i> Active
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-pause-circle"></i> Inactive
+                                    </span>
+                                }
+                            </td>
+                            <td>
+                                @receptionist.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a asp-action="Details" asp-route-id="@receptionist.Id" class="btn btn-outline-info">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@receptionist.Id" class="btn btn-outline-warning">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@receptionist.Id" class="btn btn-outline-danger">
+                                        <i class="bi bi-trash3"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6">
+                            <div class="p-4 text-center text-muted">
+                                <i class="bi bi-person-x fs-3 d-block mb-2"></i>
+                                No receptionists found.
+                                <a asp-action="Create">Add the first receptionist</a>.
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

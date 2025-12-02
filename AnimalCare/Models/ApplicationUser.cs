@@ -32,5 +32,9 @@ namespace AnimalCare.Models
 
         [NotMapped]
         public string FullName => $"{FirstName} {LastName}";
+
+        [Display(Name = "Receptionist")]
+        public int? ReceptionistId { get; set; }
+        public Receptionist? Receptionist { get; set; }
     }
 }

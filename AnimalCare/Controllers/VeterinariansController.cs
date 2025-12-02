@@ -175,6 +175,9 @@ namespace AnimalCare.Controllers
                     if (existingVet == null)
                         return NotFound();
 
+                    // Check if IsActive status changed
+                    bool isActiveChanged = existingVet.IsActive != vet.IsActive;
+
                     // Update basic properties
                     existingVet.FirstName = vet.FirstName;
                     existingVet.LastName = vet.LastName;
@@ -200,6 +203,22 @@ namespace AnimalCare.Controllers
 
                     await _context.SaveChangesAsync();
 
+                    // ✅ SYNC IsActive STATUS WITH USER ACCOUNT
+                    if (isActiveChanged)
+                    {
+                        var user = await _context.Users
+                            .FirstOrDefaultAsync(u => u.VeterinarianId == existingVet.Id);
+
+                        if (user != null)
+                        {
+                            user.IsActive = vet.IsActive;
+                            await _context.SaveChangesAsync();
+
+                            _logger.LogInformation("Veterinarian {VetId} IsActive status changed to {IsActive}. User account also updated.",
+                                existingVet.Id, vet.IsActive);
+                        }
+                    }
+
                     TempData["SuccessMessage"] = "Veterinarian updated successfully.";
                     return RedirectToAction(nameof(Index));
                 }
@@ -221,7 +240,6 @@ namespace AnimalCare.Controllers
             await PopulateSpecialtiesCheckboxList(SelectedSpecialtyIds);
             return View(vet);
         }
-
 
         // GET: Veterinarians/Delete/5
         // We will WARN if vet has future appointments and recommend deactivation instead.

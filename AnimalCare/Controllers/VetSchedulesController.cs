@@ -1,34 +1,39 @@
 ﻿using AnimalCare.Data;
 using AnimalCare.Models;
+using AnimalCare.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using AnimalCare.ViewModels;
 
 namespace AnimalCare.Controllers
 {
+
     // Only admin can create/edit/delete schedules
-    [Authorize(Roles = "Admin")]
+    
     public class VetSchedulesController : Controller
     {
         private readonly AnimalCareDbContext _context;
         private readonly ILogger<VetSchedulesController> _logger;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         // Fixed working hours: 8 AM to 4 PM
         private static readonly TimeSpan WorkStartTime = new TimeSpan(8, 0, 0);   // 08:00
         private static readonly TimeSpan WorkEndTime = new TimeSpan(16, 0, 0);    // 16:00
 
-        public VetSchedulesController(AnimalCareDbContext context, ILogger<VetSchedulesController> logger)
+        public VetSchedulesController(AnimalCareDbContext context, ILogger<VetSchedulesController> logger, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _logger = logger;
+            _userManager = userManager;
         }
 
         // GET: VetSchedules
         // List all schedules, grouped by veterinarian
         // GET: VetSchedules
         // List all schedules, optionally filtered by vetId
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index(int? veterinarianId)
         {
             // Get schedules with veterinarians
@@ -70,6 +75,7 @@ namespace AnimalCare.Controllers
             return View(schedules);
         }
         // GET: VetSchedules/Create
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create()
         {
             await PopulateVeterinarianDropDownList();
@@ -77,6 +83,7 @@ namespace AnimalCare.Controllers
         }
 
         // POST: VetSchedules/Create
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateVetScheduleViewModel model)
@@ -142,6 +149,7 @@ namespace AnimalCare.Controllers
         }
 
         // GET: VetSchedules/EditAll/1 (veterinarianId)
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> EditAll(int? veterinarianId)
         {
             if (veterinarianId == null)
@@ -168,6 +176,7 @@ namespace AnimalCare.Controllers
         }
 
         // POST: VetSchedules/EditAll
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditAll(EditVetScheduleViewModel model)
@@ -246,53 +255,8 @@ namespace AnimalCare.Controllers
         }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         // GET: VetSchedules/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -316,6 +280,7 @@ namespace AnimalCare.Controllers
         }
 
         // POST: VetSchedules/Delete/5
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -352,6 +317,7 @@ namespace AnimalCare.Controllers
         }
 
         // DELETE ALL schedules for a veterinarian
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteAll(int? veterinarianId)
         {
             if (veterinarianId == null)
@@ -371,6 +337,7 @@ namespace AnimalCare.Controllers
             return View(schedules);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("DeleteAll")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteAllConfirmed(int veterinarianId)
@@ -415,6 +382,37 @@ namespace AnimalCare.Controllers
         private bool VetScheduleExists(int id)
         {
             return _context.VetSchedules.Any(e => e.Id == id);
+        }
+
+        // GET: VetSchedules/MySchedule
+        [Authorize(Roles = "Veterinarian")]
+        public async Task<IActionResult> MySchedule()
+        {
+            // Get current logged-in user
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null || user.VeterinarianId == null)
+            {
+                TempData["ErrorMessage"] = "You are not linked to a veterinarian profile.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Get the veterinarian's schedules
+            var schedules = await _context.VetSchedules
+                .Include(s => s.Veterinarian)
+                .Where(s => s.VeterinarianId == user.VeterinarianId.Value)
+                .OrderBy(s => s.DayOfWeek)
+                .ToListAsync();
+
+            // Get veterinarian info
+            var vet = await _context.Veterinarians
+                .Include(v => v.VetSpecialties)
+                .FirstOrDefaultAsync(v => v.Id == user.VeterinarianId.Value);
+
+            ViewBag.VeterinarianName = vet != null ? $"{vet.FirstName} {vet.LastName}" : "Unknown";
+            ViewBag.Specialties = vet?.VetSpecialties.Select(s => s.Name).ToList() ?? new List<string>();
+
+            return View(schedules);
         }
     }
 }

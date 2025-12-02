@@ -13,12 +13,15 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using AnimalCare.Models;
+using AnimalCare.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace AnimalCare.Areas.Identity.Pages.Account
 {
@@ -30,13 +33,15 @@ namespace AnimalCare.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<ApplicationUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly AnimalCareDbContext _context;
 
         public RegisterModel(
             UserManager<ApplicationUser> userManager,
             IUserStore<ApplicationUser> userStore,
             SignInManager<ApplicationUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            AnimalCareDbContext context)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -44,127 +49,178 @@ namespace AnimalCare.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _context = context;
         }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public string ReturnUrl { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
+        public SelectList Roles { get; set; }
+
         public class InputModel
         {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
+            [Required]
+            [Display(Name = "I am a")]
+            public string Role { get; set; }
+
             [Required]
             [EmailAddress]
             [Display(Name = "Email")]
             public string Email { get; set; }
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [Required]
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
             public string Password { get; set; }
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [DataType(DataType.Password)]
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
-
-            [Required]
-            [StringLength(50)]
-            [Display(Name = "First Name")]
-            public string FirstName { get; set; } = string.Empty;
-
-            [Required]
-            [StringLength(50)]
-            [Display(Name = "Last Name")]
-            public string LastName { get; set; } = string.Empty;
         }
-        
-
 
         public async Task OnGetAsync(string returnUrl = null)
         {
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+
+            // Populate role dropdown
+            Roles = new SelectList(new[]
+            {
+                new { Value = "Veterinarian", Text = "Veterinarian" },
+                new { Value = "Receptionist", Text = "Receptionist" }
+            }, "Value", "Text");
         }
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+
+            // Repopulate roles for return
+            Roles = new SelectList(new[]
+            {
+                new { Value = "Veterinarian", Text = "Veterinarian" },
+                new { Value = "Receptionist", Text = "Receptionist" }
+            }, "Value", "Text");
+
             if (ModelState.IsValid)
             {
-                var user = CreateUser();
-
-                // Add custom fields BEFORE CreateAsync()
-                user.FirstName = Input.FirstName;
-                user.LastName = Input.LastName;
-                user.CreatedAt = DateTime.UtcNow;
-                user.IsActive = true;
-
-                await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-                await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
-                var result = await _userManager.CreateAsync(user, Input.Password);
-
-                if (result.Succeeded)
+                // Validate role selection
+                if (Input.Role != "Veterinarian" && Input.Role != "Receptionist")
                 {
-                    _logger.LogInformation("User created a new account with password.");
+                    ModelState.AddModelError(string.Empty, "Please select a valid role.");
+                    return Page();
+                }
 
-                    var userId = await _userManager.GetUserIdAsync(user);
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                    var callbackUrl = Url.Page(
-                        "/Account/ConfirmEmail",
-                        pageHandler: null,
-                        values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
-                        protocol: Request.Scheme);
+                // Check if email already has a user account
+                var existingUser = await _userManager.FindByEmailAsync(Input.Email);
+                if (existingUser != null)
+                {
+                    ModelState.AddModelError("Input.Email", "This email already has an account. Please login instead.");
+                    return Page();
+                }
 
-                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                // Handle Veterinarian registration
+                if (Input.Role == "Veterinarian")
+                {
+                    var vet = await _context.Veterinarians
+                        .FirstOrDefaultAsync(v => v.Email == Input.Email && v.IsActive);
 
-                    if (_userManager.Options.SignIn.RequireConfirmedAccount)
+                    if (vet == null)
                     {
-                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
+                        ModelState.AddModelError("Input.Email",
+                            "This email is not registered as a Veterinarian in our system. Please contact the administrator.");
+                        return Page();
                     }
-                    else
+
+                    // Check if this Veterinarian already has a user account
+                    var existingVetUser = await _context.Users
+                        .FirstOrDefaultAsync(u => u.VeterinarianId == vet.Id);
+
+                    if (existingVetUser != null)
                     {
+                        ModelState.AddModelError("Input.Email",
+                            "This Veterinarian profile already has a user account. Please login instead.");
+                        return Page();
+                    }
+
+                    // Create user linked to veterinarian
+                    var user = CreateUser();
+                    user.FirstName = vet.FirstName;
+                    user.LastName = vet.LastName;
+                    user.PhoneNumber = vet.PhoneNumber;
+                    user.VeterinarianId = vet.Id;
+                    user.CreatedAt = DateTime.UtcNow;
+                    user.IsActive = true;
+
+                    await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+                    await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+                    var result = await _userManager.CreateAsync(user, Input.Password);
+
+                    if (result.Succeeded)
+                    {
+                        // Assign Veterinarian role
+                        await _userManager.AddToRoleAsync(user, "Veterinarian");
+
+                        _logger.LogInformation("Veterinarian created a new account with password.");
+
                         await _signInManager.SignInAsync(user, isPersistent: false);
                         return LocalRedirect(returnUrl);
                     }
+
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
                 }
-                foreach (var error in result.Errors)
+                // Handle Receptionist registration
+                else if (Input.Role == "Receptionist")
                 {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    // Check if email exists in Receptionists table
+                    var receptionist = await _context.Receptionists
+                        .FirstOrDefaultAsync(r => r.Email == Input.Email && r.IsActive);
+
+                    if (receptionist == null)
+                    {
+                        ModelState.AddModelError("Input.Email",
+                            "This email is not registered as a Receptionist in our system. Please contact the administrator.");
+                        return Page();
+                    }
+
+                    // Create user linked to receptionist
+                    var user = CreateUser();
+                    user.FirstName = receptionist.FirstName;
+                    user.LastName = receptionist.LastName;
+                    user.PhoneNumber = receptionist.PhoneNumber;
+                    user.ReceptionistId = receptionist.Id;
+                    user.CreatedAt = DateTime.UtcNow;
+                    user.IsActive = true;
+
+                    await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+                    await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+                    var result = await _userManager.CreateAsync(user, Input.Password);
+
+                    if (result.Succeeded)
+                    {
+                        // Assign Receptionist role
+                        await _userManager.AddToRoleAsync(user, "Receptionist");
+
+                        _logger.LogInformation("Receptionist created a new account with password.");
+
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        return LocalRedirect(returnUrl);
+                    }
+
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
                 }
             }
 

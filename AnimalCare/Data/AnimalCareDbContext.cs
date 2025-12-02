@@ -19,6 +19,7 @@ namespace AnimalCare.Data
         public DbSet<VetSpecialty> VetSpecialties { get; set; } = default!;
         public DbSet<VetSchedule> VetSchedules { get; set; } = default!;
         public DbSet<Appointment> Appointments { get; set; } = default!;
+        public DbSet<Receptionist> Receptionists { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -94,6 +95,14 @@ namespace AnimalCare.Data
                     .HasForeignKey<ApplicationUser>(u => u.VeterinarianId)
                     .OnDelete(DeleteBehavior.SetNull);
 
+            // ---------------------------------------------------
+            // APPLICATIONUSER ↔ RECEPTIONIST (1 ↔ 0 or 1)
+            // ---------------------------------------------------
+            modelBuilder.Entity<ApplicationUser>()
+                .HasOne(u => u.Receptionist)
+                .WithOne(r => r.User)
+                .HasForeignKey<ApplicationUser>(u => u.ReceptionistId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // -----------------------------
             // PROPERTY CONFIGURATIONS
