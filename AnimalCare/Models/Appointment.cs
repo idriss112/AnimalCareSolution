@@ -31,7 +31,12 @@ namespace AnimalCare.Models
         public DateTime? UpdatedAt { get; set; }
 
         // Navigation
+        
         public Animal Animal { get; set; } = default!;
         public Veterinarian Veterinarian { get; set; } = default!;
+
+        [Display(Name = "Prescription / Notes")]
+        [StringLength(2000)]
+        public string? Prescription { get; set; }
     }
 }

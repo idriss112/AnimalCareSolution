@@ -567,5 +567,58 @@ namespace AnimalCare.Controllers
         {
             return _context.Appointments.Any(e => e.Id == id);
         }
+
+        // GET: Appointments/AddPrescription/5
+        [Authorize(Roles = "Veterinarian")]
+        public async Task<IActionResult> AddPrescription(int? id)
+        {
+            if (id == null)
+                return NotFound();
+
+            var appointment = await _context.Appointments
+                .Include(a => a.Animal)
+                    .ThenInclude(an => an.Owner)
+                .Include(a => a.Veterinarian)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (appointment == null)
+                return NotFound();
+
+            if (appointment.Status == AppointmentStatus.Completed)
+            {
+                TempData["ErrorMessage"] = "This appointment is already completed.";
+                return RedirectToAction(nameof(MyAppointments));
+            }
+
+            if (appointment.AppointmentDateTime.Date > DateTime.Now.Date)
+            {
+                TempData["ErrorMessage"] = "You cannot complete a future appointment.";
+                return RedirectToAction(nameof(MyAppointments));
+            }
+
+            return View(appointment);
+        }
+
+        // POST: Appointments/AddPrescription
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Veterinarian")]
+        public async Task<IActionResult> AddPrescription(int id, string prescription)
+        {
+            var appointment = await _context.Appointments
+                .Include(a => a.Animal)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (appointment == null)
+                return NotFound();
+
+            appointment.Prescription = prescription;
+            appointment.Status = AppointmentStatus.Completed;
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Appointment completed for {appointment.Animal.Name}.";
+            return RedirectToAction(nameof(MyAppointments));
+        }
     }
 }

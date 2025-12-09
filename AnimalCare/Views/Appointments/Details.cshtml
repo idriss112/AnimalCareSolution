@@ -148,6 +148,18 @@
                 }
             </div>
         </div>
+
+        @if (Model.Status == AppointmentStatus.Completed && !string.IsNullOrWhiteSpace(Model.Prescription))
+        {
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-success text-white">
+                    <i class="bi bi-file-medical"></i> Prescription / Medical Notes
+                </div>
+                <div class="card-body">
+                    <p class="mb-0" style="white-space: pre-wrap;">@Model.Prescription</p>
+                </div>
+            </div>
+        }
     </div>
 
     <!-- VET -->

@@ -1,0 +1,63 @@
+﻿@model AnimalCare.Models.Appointment
+
+@{
+    ViewData["Title"] = "Complete Appointment";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-clipboard-check"></i> Complete Appointment
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- Appointment Info -->
+                <div class="alert alert-info">
+                    <p class="mb-1">
+                        <strong><i class="bi bi-heart-pulse"></i> Patient:</strong>
+                        @Model.Animal.Name (@Model.Animal.Species)
+                    </p>
+                    <p class="mb-1">
+                        <strong><i class="bi bi-person"></i> Owner:</strong>
+                        @Model.Animal.Owner.FirstName @Model.Animal.Owner.LastName
+                    </p>
+                    <p class="mb-1">
+                        <strong><i class="bi bi-clipboard"></i> Reason:</strong>
+                        @Model.Reason
+                    </p>
+                    <p class="mb-0">
+                        <strong><i class="bi bi-calendar-event"></i> Date:</strong>
+                        @Model.AppointmentDateTime.ToString("dddd, MMMM dd, yyyy - hh:mm tt")
+                    </p>
+                </div>
+
+                <!-- Prescription Form -->
+                <form asp-action="AddPrescription" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-journal-text"></i> Prescription / Medical Notes
+                        </label>
+                        <textarea name="prescription" class="form-control" rows="10"
+                                  placeholder="Enter diagnosis, treatment plan, prescriptions, and medical notes...">@Model.Prescription</textarea>
+                        <small class="text-muted">
+                            Include diagnosis, treatment, prescriptions, and follow-up instructions.
+                        </small>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Complete Appointment
+                        </button>
+                        <a asp-action="MyAppointments" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

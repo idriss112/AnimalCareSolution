@@ -230,6 +230,10 @@
                                     <a asp-action="Details" asp-route-id="@a.Id" class="btn btn-sm btn-outline-info">
                                         <i class="bi bi-eye"></i>
                                     </a>
+                                    <a asp-action="AddPrescription" asp-route-id="@a.Id"
+                                       class="btn btn-sm btn-success">
+                                        <i class="bi bi-clipboard-check"></i> Complete
+                                    </a>
                                 </td>
                             </tr>
                         }
