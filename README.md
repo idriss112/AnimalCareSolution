@@ -466,8 +466,8 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour détail
 
 **Driss Laaziri**
 
-- LinkedIn: [Votre LinkedIn](https://www.linkedin.com/in/idrisslzr)
-- GitHub: [@yourusername](https://github.com/idriss112)
+- LinkedIn: [idrisslzr](https://www.linkedin.com/in/idrisslzr)
+- GitHub: [@idriss112](https://github.com/idriss112)
 - Email: idrisslaaziri@gmail.com
 
 ## 🙏 Remerciements
