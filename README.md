@@ -21,7 +21,7 @@ Une application web full-stack complète pour la gestion des opérations de clin
 - [Contribution](#contribution)
 - [Licence](#licence)
 
-##Aperçu
+## Aperçu
 
 Animal Care Clinic est un système moderne de gestion vétérinaire basé sur les rôles, conçu pour rationaliser les opérations de la clinique. L'application fournit des interfaces distinctes pour les administrateurs, les vétérinaires et les réceptionnistes, permettant une gestion efficace des rendez-vous, des dossiers patients et des horaires du personnel.
 
