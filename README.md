@@ -7,7 +7,7 @@ Une application web full-stack complète pour la gestion des opérations de clin
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple)](https://getbootstrap.com/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-## 📋 Table des Matières
+##  Table des Matières
 
 - [Aperçu](#aperçu)
 - [Fonctionnalités](#fonctionnalités)
@@ -34,7 +34,7 @@ Animal Care Clinic est un système moderne de gestion vétérinaire basé sur le
 - **Design responsive** optimisé pour ordinateur et mobile
 - **Rapports professionnels** avec visualisation des données
 
-## ✨ Fonctionnalités
+##  Fonctionnalités
 
 ### 👑 Fonctionnalités Administrateur
 - **Gestion du Personnel**
@@ -60,7 +60,7 @@ Animal Care Clinic est un système moderne de gestion vétérinaire basé sur le
   - Actions rapides pour les tâches courantes
   - Mises à jour des données en temps réel
 
-### 🩺 Fonctionnalités Vétérinaire
+###  Fonctionnalités Vétérinaire
 - **Gestion des Horaires**
   - Voir l'horaire hebdomadaire personnel
   - Voir les jours et heures de travail assignés
@@ -75,7 +75,7 @@ Animal Care Clinic est un système moderne de gestion vétérinaire basé sur le
   - Changer le mot de passe avec vérification
   - Voir les spécialités
 
-### 📋 Fonctionnalités Réceptionniste
+###  Fonctionnalités Réceptionniste
 - **Réservation de Rendez-vous**
   - Planifier des rendez-vous avec vétérinaires disponibles
   - Voir l'horaire du jour
@@ -91,7 +91,7 @@ Animal Care Clinic est un système moderne de gestion vétérinaire basé sur le
   - Mettre à jour les informations des animaux
   - Suivre l'historique médical
 
-### 🔐 Authentification & Autorisation
+###  Authentification & Autorisation
 - **Système d'Auto-inscription**
   - Inscription basée sur les rôles (Vétérinaire/Réceptionniste)
   - Vérification email contre les enregistrements de base de données
@@ -108,7 +108,7 @@ Animal Care Clinic est un système moderne de gestion vétérinaire basé sur le
   - Protection par jeton anti-contrefaçon
   - Exigences de force du mot de passe
 
-## 🛠️ Stack Technique
+##  Stack Technique
 
 ### Backend
 - **Framework:** ASP.NET Core MVC 8.0
@@ -133,7 +133,7 @@ Animal Care Clinic est un système moderne de gestion vétérinaire basé sur le
 - **Async/Await:** Opérations non bloquantes
 - **Principes SOLID:** Code propre et maintenable
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 AnimalCare/
@@ -184,7 +184,7 @@ AnimalCare/
             └── Account/            # Login, Register, Profile
 ```
 
-## 🚀 Démarrage
+##  Démarrage
 
 ### Prérequis
 
@@ -281,7 +281,7 @@ Après avoir exécuté l'application pour la première fois, vous devrez créer 
    - Les vétérinaires et réceptionnistes peuvent maintenant s'inscrire à `/Identity/Account/Register`
    - Ils doivent utiliser l'email enregistré dans le système
 
-## 🗄️ Schéma de Base de Données
+##  Schéma de Base de Données
 
 ### Entités Principales
 
@@ -344,7 +344,7 @@ ApplicationUser (1) ─ (0..1) Veterinarian
 ApplicationUser (1) ─ (0..1) Receptionist
 ```
 
-## 👥 Rôles Utilisateurs
+##  Rôles Utilisateurs
 
 ### Hiérarchie des Rôles
 
@@ -372,7 +372,7 @@ Email: receptionist@animalcare.com
 Mot de passe: Receptionist123!
 ```
 
-## 🔒 Sécurité
+##  Sécurité
 
 ### Authentification
 - **ASP.NET Core Identity** pour la gestion des utilisateurs
@@ -398,7 +398,7 @@ Mot de passe: Receptionist123!
 - **Synchronisation compte** - Désactive automatiquement utilisateur lié quand personnel désactivé
 - **Contraintes horaire** - Applique minimum 3 jours de travail requis
 
-## 🧪 Tests
+##  Tests
 
 ### Liste de Vérification Tests Manuels
 
@@ -423,7 +423,7 @@ Mot de passe: Receptionist123!
 - [ ] Statut rendez-vous se met à jour correctement
 - [ ] Rapport mensuel calcule correctement
 
-## 📈 Améliorations Futures
+##  Améliorations Futures
 
 ### Fonctionnalités Prévues
 - [ ] **Notifications Email** - Rappels et confirmations de rendez-vous
@@ -441,7 +441,7 @@ Mot de passe: Receptionist123!
 - [ ] **Support Multi-cliniques** - Gérer plusieurs emplacements
 - [ ] **Sauvegardes Automatiques** - Sauvegardes base de données planifiées
 
-## 🤝 Contribution
+##  Contribution
 
 Les contributions sont les bienvenues! Veuillez suivre ces étapes:
 
@@ -458,11 +458,11 @@ Les contributions sont les bienvenues! Veuillez suivre ces étapes:
 - Écrire du code propre et lisible (principes SOLID)
 - Inclure gestion d'erreurs et journalisation
 
-## 📝 Licence
+##  Licence
 
 Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour détails.
 
-## 👨‍💻 Auteur
+##  Auteur
 
 **Driss Laaziri**
 
@@ -470,7 +470,7 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour détail
 - GitHub: [@idriss112](https://github.com/idriss112)
 - Email: idrisslaaziri@gmail.com
 
-## 🙏 Remerciements
+##  Remerciements
 
 - Documentation ASP.NET Core
 - Documentation Entity Framework Core
@@ -478,7 +478,7 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour détail
 - Communauté Stack Overflow
 - Divers tutoriels et ressources en ligne
 
-## 📞 Support
+##  Support
 
 Pour support, email your.email@example.com ou ouvrir un issue dans le dépôt GitHub.
 
