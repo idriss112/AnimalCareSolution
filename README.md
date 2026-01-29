@@ -197,7 +197,7 @@ AnimalCare/
 
 1. **Cloner le dépôt**
    ```bash
-   git clone https://github.com/yourusername/animal-care-clinic.git
+   git clone https://github.com/idriss112/AnimalCareSolution.git
    cd animal-care-clinic
    ```
 
@@ -480,7 +480,7 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour détail
 
 ##  Support
 
-Pour support, email your.email@example.com ou ouvrir un issue dans le dépôt GitHub.
+Pour support, idrisslaaziri@gmail.com ou ouvrir un issue dans le dépôt GitHub.
 
 ---
 
