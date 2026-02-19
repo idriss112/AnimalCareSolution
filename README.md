@@ -1,4 +1,4 @@
-# 🐾 Système de Gestion de Clinique Vétérinaire Animal Care
+#  Système de Gestion de Clinique Vétérinaire Animal Care
 
 Une application web full-stack complète pour la gestion des opérations de clinique vétérinaire, développée avec ASP.NET Core MVC et Entity Framework Core.
 
@@ -36,7 +36,7 @@ Animal Care Clinic est un système moderne de gestion vétérinaire basé sur le
 
 ##  Fonctionnalités
 
-### 👑 Fonctionnalités Administrateur
+###  Fonctionnalités Administrateur
 - **Gestion du Personnel**
   - Créer, modifier et gérer les vétérinaires
   - Créer, modifier et gérer les réceptionnistes
